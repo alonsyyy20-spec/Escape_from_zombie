@@ -75,7 +75,7 @@
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 15px;
     }
     .nav button {
       background: none;
@@ -123,6 +123,7 @@
 
     video { width: 100%; border-radius: 10px; }
 
+    /* Pulsante in basso */
     .admin-btn {
       position: fixed;
       bottom: 30px;
@@ -135,13 +136,7 @@
       font-size: 16px;
       cursor: pointer;
       box-shadow: 0 4px 15px rgba(229,9,20,0.4);
-      display: none; /* nascosto finché non fai login */
-    }
-
-    /* Login modal */
-    #loginModal .modal-content {
-      max-width: 400px;
-      text-align: center;
+      display: none; /* visibile solo dopo login */
     }
   </style>
 </head>
@@ -158,6 +153,7 @@
     </div>
 
     <div class="nav">
+      <button onclick="showLogin()">🔑 Password Admin</button>
       <button id="adminNavBtn" onclick="showAdmin()" style="display:none;">👤 Admin</button>
     </div>
   </header>
@@ -207,10 +203,11 @@
 
   <!-- Login Modal -->
   <div class="modal" id="loginModal">
-    <div class="modal-content">
-      <h2>Accesso Zotflix</h2>
-      <p>Inserisci la password per accedere all'area Admin</p>
-      <input type="password" id="passwordInput" placeholder="Password" style="width:100%; padding:12px; margin:15px 0; background:#333; border:none; color:white; font-size:16px;">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <h2>🔑 Accesso Admin</h2>
+      <p>Inserisci la password per gestire i film</p>
+      <input type="password" id="passwordInput" placeholder="Inserisci password" 
+             style="width:100%; padding:12px; margin:15px 0; background:#333; border:none; color:white; font-size:16px;">
       <button onclick="checkPassword()" style="background:#e50914; color:white; border:none; padding:12px 30px; border-radius:5px; cursor:pointer; width:100%;">
         Accedi
       </button>
@@ -218,13 +215,14 @@
     </div>
   </div>
 
-  <!-- Pulsante Admin flottante (visibile solo dopo login) -->
-  <button class="admin-btn" id="adminFloatBtn" onclick="showAdmin()">+ Carica Film</button>
+  <!-- Pulsante in basso (Solo dopo login) -->
+  <button class="admin-btn" id="adminFloatBtn" onclick="showAdmin()">
+    + Carica Film (Solo io)
+  </button>
 
 <script>
-// ==================== CONFIGURAZIONE ====================
-// CAMBIA QUESTA PASSWORD con quella che vuoi tu!
-const ADMIN_PASSWORD = "zotflix123";   // ←←← CAMBIALA QUI !!
+// ==================== CAMBIA QUI LA TUA PASSWORD ====================
+const ADMIN_PASSWORD = "zotflix123";   // ←←← CAMBIALA con quella che vuoi tu!!
 
 let movies = JSON.parse(localStorage.getItem('zotflixMovies')) || [];
 let isAdminLoggedIn = false;
@@ -239,7 +237,7 @@ function renderMovies(filteredMovies = movies) {
     return;
   }
 
-  filteredMovies.forEach((movie, index) => {
+  filteredMovies.forEach((movie) => {
     const div = document.createElement('div');
     div.className = 'movie';
     div.style.backgroundImage = `url('${movie.image}')`;
@@ -278,11 +276,8 @@ function playMovie(index) {
 }
 
 function playFeatured() {
-  if (movies.length > 0) {
-    playMovie(0);
-  } else {
-    alert("Nessun film caricato ancora.");
-  }
+  if (movies.length > 0) playMovie(0);
+  else alert("Nessun film caricato ancora.");
 }
 
 function closeModal() {
@@ -293,10 +288,14 @@ function closeModal() {
   modal.style.display = 'none';
 }
 
-// Admin functions
+function showLogin() {
+  document.getElementById('loginModal').style.display = 'flex';
+  document.getElementById('passwordInput').focus();
+}
+
 function showAdmin() {
   if (!isAdminLoggedIn) {
-    document.getElementById('loginModal').style.display = 'flex';
+    showLogin();
     return;
   }
   document.getElementById('adminModal').style.display = 'flex';
@@ -319,7 +318,7 @@ function checkPassword() {
     error.style.display = 'none';
   } else {
     error.style.display = 'block';
-    setTimeout(() => error.style.display = 'none', 3000);
+    setTimeout(() => error.style.display = 'none', 2500);
   }
 }
 
@@ -342,12 +341,9 @@ function setupSearch() {
   });
 }
 
-// Inizializza
+// Inizializza tutto
 renderMovies();
 setupSearch();
-
-// Se vuoi far apparire direttamente l'admin senza password (solo per test), commenta la riga sotto:
-// isAdminLoggedIn = true;   // ← decommenta solo per test
 </script>
 
 </body>

@@ -21,6 +21,7 @@
       position: fixed;
       width: 100%;
       z-index: 100;
+      gap: 30px;
     }
     .logo {
       font-size: 42px;
@@ -39,9 +40,44 @@
       50% { transform: scale(1.15); }
       100% { transform: scale(1); }
     }
+
+    /* Search bar stile Netflix */
+    .search-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-icon {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+    }
+    .search-input {
+      background: rgba(0,0,0,0.8);
+      border: 1px solid #666;
+      color: white;
+      padding: 10px 15px 10px 45px;
+      width: 0;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+      font-size: 16px;
+      outline: none;
+    }
+    .search-container:hover .search-input,
+    .search-input:focus {
+      width: 300px;
+    }
+    .search-input::placeholder {
+      color: #aaa;
+    }
+
     .nav {
       margin-left: auto;
       display: flex;
+      align-items: center;
       gap: 20px;
     }
     .nav button {
@@ -51,6 +87,7 @@
       font-size: 16px;
       cursor: pointer;
     }
+
     .hero {
       height: 90vh;
       background-size: cover;
@@ -132,6 +169,13 @@
     <div class="logo">
       <span class="z">Z</span>otflix
     </div>
+
+    <!-- Search bar con lente -->
+    <div class="search-container">
+      <button class="search-icon" id="searchIcon">🔍</button>
+      <input type="text" id="searchInput" class="search-input" placeholder="Cerca film...">
+    </div>
+
     <div class="nav">
       <button onclick="showAdmin()">👤 Admin (solo tu)</button>
     </div>
@@ -186,16 +230,21 @@
 // Array film (salvato in localStorage)
 let movies = JSON.parse(localStorage.getItem('zotflixMovies')) || [];
 
-// Renderizza i film
-function renderMovies() {
+// Renderizza i film (con filtro opzionale)
+function renderMovies(filteredMovies = movies) {
   const container = document.getElementById('myMovies');
   container.innerHTML = '';
   
-  movies.forEach((movie, index) => {
+  if (filteredMovies.length === 0) {
+    container.innerHTML = '<p style="color:#888; padding:10px;">Nessun film trovato...</p>';
+    return;
+  }
+
+  filteredMovies.forEach((movie, index) => {
     const div = document.createElement('div');
     div.className = 'movie';
     div.style.backgroundImage = `url('${movie.image}')`;
-    div.onclick = () => playMovie(index);
+    div.onclick = () => playMovie(movies.indexOf(movie)); // indice originale
     container.appendChild(div);
   });
 }
@@ -217,7 +266,6 @@ function addMovie() {
   
   renderMovies();
   closeAdmin();
-  
   alert("Film pubblicato con successo su Zotflix! 🔥");
 }
 
@@ -253,9 +301,34 @@ function closeAdmin() {
   document.getElementById('adminModal').style.display = 'none';
 }
 
+// Funzione di ricerca
+function setupSearch() {
+  const searchInput = document.getElementById('searchInput');
+  const searchIcon = document.getElementById('searchIcon');
+
+  // Clic sulla lente per focus
+  searchIcon.addEventListener('click', () => {
+    searchInput.focus();
+  });
+
+  // Ricerca in tempo reale
+  searchInput.addEventListener('input', () => {
+    const term = searchInput.value.toLowerCase().trim();
+    if (term === '') {
+      renderMovies(movies);
+    } else {
+      const filtered = movies.filter(movie => 
+        movie.title.toLowerCase().includes(term)
+      );
+      renderMovies(filtered);
+    }
+  });
+}
+
 // Inizializza
 renderMovies();
+setupSearch();
 </script>
 
 </body>
-        </html>
+</html>

@@ -106,7 +106,7 @@
   <button class="admin-btn" id="adminFloatBtn" onclick="showAdmin()">+ Carica Film (Solo io)</button>
 
 <script>
-// ==================== PASSWORD ====================
+// ==================== CONFIG ====================
 const ADMIN_PASSWORD = "admin";
 
 let movies = JSON.parse(localStorage.getItem('zotflixMovies')) || [];
@@ -115,6 +115,7 @@ let isAdminLoggedIn = false;
 let currentVideoURL = null;
 let currentCoverURL = null;
 
+// Caricamento file
 function handleCoverUpload(e) {
   const file = e.target.files[0];
   if (file) currentCoverURL = URL.createObjectURL(file);
@@ -127,12 +128,13 @@ function handleVideoUpload(e) {
   }
 }
 
+// Aggiungi film (solo admin)
 function addMovie() {
-  if (!isAdminLoggedIn) return alert("Devi essere Admin per caricare film!");
+  if (!isAdminLoggedIn) return alert("Devi fare il login come Admin per caricare film!");
 
   const title = document.getElementById('title').value.trim();
-  if (!title) return alert("Inserisci il titolo!");
-  if (!currentVideoURL) return alert("Devi selezionare un video!");
+  if (!title) return alert("Inserisci il titolo del film!");
+  if (!currentVideoURL) return alert("Devi selezionare un video dalla galleria!");
 
   movies.push({
     title: title,
@@ -145,6 +147,7 @@ function addMovie() {
   renderMovies();
   closeAdmin();
 
+  // Reset
   currentVideoURL = null;
   currentCoverURL = null;
   document.getElementById('title').value = '';
@@ -155,6 +158,7 @@ function addMovie() {
   alert("✅ Film pubblicato con successo!");
 }
 
+// Renderizza film
 function renderMovies(filtered = movies) {
   const container = document.getElementById('myMovies');
   container.innerHTML = '';
@@ -164,30 +168,34 @@ function renderMovies(filtered = movies) {
     div.className = 'movie';
     div.style.backgroundImage = `url('${movie.image}')`;
     
-    // Mostra il pulsante elimina SOLO se sei loggato come Admin
+    // Mostra pulsante elimina solo se sei admin
     if (isAdminLoggedIn) {
       div.innerHTML = `<button class="delete-btn" onclick="deleteMovie(${index}); event.stopImmediatePropagation();">×</button>`;
     }
-    
+
     div.onclick = () => playMovie(index);
     container.appendChild(div);
   });
 }
 
+// Elimina film (solo admin)
 function deleteMovie(index) {
   if (!isAdminLoggedIn) return;
   if (!confirm("Vuoi davvero eliminare questo film?")) return;
 
-  if (movies[index].videoURL && movies[index].videoURL.startsWith('blob:')) URL.revokeObjectURL(movies[index].videoURL);
-  if (movies[index].image && movies[index].image.startsWith('blob:')) URL.revokeObjectURL(movies[index].image);
+  if (movies[index].videoURL.startsWith('blob:')) URL.revokeObjectURL(movies[index].videoURL);
+  if (movies[index].image.startsWith('blob:')) URL.revokeObjectURL(movies[index].image);
 
   movies.splice(index, 1);
   localStorage.setItem('zotflixMovies', JSON.stringify(movies));
   renderMovies();
 }
 
+// Riproduci film (funziona per tutti)
 function playMovie(index) {
   const movie = movies[index];
+  if (!movie || !movie.videoURL) return alert("Errore nel caricamento del video");
+
   const player = document.getElementById('player');
   player.src = movie.videoURL;
   document.getElementById('videoModal').style.display = 'flex';
@@ -206,16 +214,11 @@ function closeModal() {
   modal.style.display = 'none';
 }
 
-// ==================== LOGIN ====================
-function showLogin() {
-  document.getElementById('loginModal').style.display = 'flex';
-}
+// Login
+function showLogin() { document.getElementById('loginModal').style.display = 'flex'; }
 
 function showAdmin() {
-  if (!isAdminLoggedIn) {
-    showLogin();
-    return;
-  }
+  if (!isAdminLoggedIn) return showLogin();
   document.getElementById('adminModal').style.display = 'flex';
 }
 
@@ -230,7 +233,7 @@ function checkPassword() {
     document.getElementById('loginModal').style.display = 'none';
     document.getElementById('adminNavBtn').style.display = 'block';
     document.getElementById('adminFloatBtn').style.display = 'block';
-    renderMovies();        // Aggiorna la lista per mostrare i pulsanti elimina
+    renderMovies();   // Aggiorna per mostrare i pulsanti elimina
   } else {
     document.getElementById('loginError').style.display = 'block';
     setTimeout(() => document.getElementById('loginError').style.display = 'none', 2500);

@@ -2,8 +2,8 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Cursor Shooter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Escape from Zombie</title>
   <style>
     body {
       margin: 0;
@@ -19,8 +19,9 @@
       position: absolute;
       top: 15px;
       left: 15px;
-      color: white;
+      color: #ffff00;
       font-size: 24px;
+      font-weight: bold;
       z-index: 100;
       text-shadow: 0 0 10px #ffff00;
     }
@@ -41,20 +42,20 @@
       gap: 10px;
     }
     .dpad button {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.15);
       border: 3px solid #ffff00;
       color: white;
-      font-size: 28px;
+      font-size: 32px;
       border-radius: 12px;
       pointer-events: all;
     }
     .shoot-btn {
       width: 100px;
       height: 100px;
-      background: rgba(255,255,0,0.25);
+      background: rgba(255, 0, 0, 0.6);
       border: 5px solid #ffff00;
       color: #ffff00;
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
       border-radius: 50%;
       pointer-events: all;
@@ -62,10 +63,22 @@
       align-items: center;
       justify-content: center;
     }
+    #title {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #e50914;
+      font-size: 28px;
+      font-weight: bold;
+      text-shadow: 0 0 15px #e50914;
+      z-index: 100;
+    }
   </style>
 </head>
 <body>
 
+  <div id="title">ESCAPE FROM ZOMBIE</div>
   <div id="ui">Punteggio: <span id="score">0</span></div>
   
   <canvas id="game" width="800" height="600"></canvas>
@@ -132,12 +145,7 @@ function setupControls() {
   let shooting = false;
   shootBtn.addEventListener('touchstart', (e) => { e.preventDefault(); shooting = true; });
   shootBtn.addEventListener('touchend', () => shooting = false);
-  
-  // Supporto mouse per test
-  shootBtn.addEventListener('mousedown', () => shooting = true);
-  shootBtn.addEventListener('mouseup', () => shooting = false);
 
-  // Loop per sparo continuo
   setInterval(() => {
     if (shooting && gameRunning) shoot();
   }, 70);
@@ -161,12 +169,12 @@ function shoot() {
 }
 
 function spawnEnemy() {
-  if (Math.random() < 0.038) {
+  if (Math.random() < 0.04) {
     enemies.push({
-      x: Math.random() * (canvas.width - 50) + 25,
+      x: Math.random() * (canvas.width - 60) + 30,
       y: -30,
       radius: 14,
-      speed: 3 + Math.random() * 2.5
+      speed: 3 + Math.random() * 2.8
     });
   }
 }
@@ -197,10 +205,10 @@ function gameLoop() {
     const e = enemies[i];
     e.y += e.speed;
 
-    // Collisione giocatore
+    // Collisione con giocatore
     const dx = player.x - e.x;
     const dy = player.y - e.y;
-    if (Math.sqrt(dx*dx + dy*dy) < 25 + e.radius) {
+    if (Math.sqrt(dx*dx + dy*dy) < 28 + e.radius) {
       gameOver();
       return;
     }
@@ -208,7 +216,7 @@ function gameLoop() {
     if (e.y > canvas.height + 50) enemies.splice(i, 1);
   }
 
-  // Collisione proiettili - nemici
+  // Collisione proiettili vs nemici
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = enemies.length - 1; j >= 0; j--) {
       const b = bullets[i];
@@ -229,10 +237,10 @@ function gameLoop() {
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Disegna cursore GIALLO lungo
+  // Disegna cursore GIALLO
   ctx.fillStyle = '#ffff00';
   ctx.beginPath();
-  ctx.moveTo(player.x, player.y - 24);           // punta
+  ctx.moveTo(player.x, player.y - 24);
   ctx.lineTo(player.x - 14, player.y + 18);
   ctx.lineTo(player.x - 6, player.y + 12);
   ctx.lineTo(player.x + 6, player.y + 12);
@@ -240,7 +248,7 @@ function gameLoop() {
   ctx.closePath();
   ctx.fill();
 
-  // Proiettili
+  // Proiettili (cyan)
   ctx.fillStyle = '#00ffff';
   bullets.forEach(b => {
     ctx.fillRect(b.x - 3, b.y, 6, 16);
@@ -259,7 +267,7 @@ function gameLoop() {
 
 function gameOver() {
   gameRunning = false;
-  alert("GAME OVER!\n\nPunteggio: " + score + "\n\nRicarica la pagina per giocare di nuovo.");
+  alert("GAME OVER!\n\nPunteggio finale: " + score + "\n\nRicarica la pagina per giocare di nuovo.");
 }
 
 // Inizializza

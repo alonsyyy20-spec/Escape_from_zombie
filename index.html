@@ -71,19 +71,26 @@
   <div class="modal" id="adminModal">
     <div class="modal-content">
       <h2>Carica nuovo film (Solo tu)</h2>
+      
       <input type="text" id="title" placeholder="Titolo del film" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white;">
       <input type="text" id="desc" placeholder="Breve descrizione" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white;">
-      <input type="text" id="image" placeholder="URL copertina (opzionale)" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white;">
 
+      <!-- Copertina dalla galleria -->
+      <button onclick="document.getElementById('coverFile').click()" style="background:#333; color:white; border:none; padding:12px 20px; margin:10px 0; border-radius:5px; cursor:pointer; width:100%;">
+        🖼️ Seleziona Copertina dalla Galleria
+      </button>
+      <input type="file" id="coverFile" accept="image/*" style="display:none;" onchange="handleCoverUpload(event)">
+
+      <!-- Video dalla galleria -->
       <button onclick="document.getElementById('videoFile').click()" style="background:#e50914; color:white; border:none; padding:12px 20px; margin:10px 0; border-radius:5px; cursor:pointer; width:100%;">
         📁 Seleziona Video dalla Galleria
       </button>
       <input type="file" id="videoFile" accept="video/mp4,video/webm" style="display:none;" onchange="handleVideoUpload(event)">
 
-      <button onclick="addMovie()" style="background:#e50914; color:white; border:none; padding:15px 30px; margin-top:15px; border-radius:5px; cursor:pointer;">
+      <button onclick="addMovie()" style="background:#e50914; color:white; border:none; padding:15px 30px; margin-top:20px; border-radius:5px; cursor:pointer; width:100%;">
         Pubblica Film
       </button>
-      <button onclick="closeAdmin()" style="margin-left:10px; background:#555; color:white; border:none; padding:15px 30px; border-radius:5px; cursor:pointer;">
+      <button onclick="closeAdmin()" style="margin-top:10px; background:#555; color:white; border:none; padding:15px 30px; border-radius:5px; cursor:pointer; width:100%;">
         Chiudi
       </button>
     </div>
@@ -92,43 +99,33 @@
   <button class="admin-btn" id="adminFloatBtn" onclick="showAdmin()">+ Carica Film (Solo io)</button>
 
 <script>
-// ==================== PASSWORD ====================
-const ADMIN_PASSWORD = "admin";   // ← cambia qui la tua password
+// ==================== PASSWORD (lasciata "admin" come richiesto) ====================
+const ADMIN_PASSWORD = "admin";
 
 let movies = JSON.parse(localStorage.getItem('zotflixMovies')) || [];
 let isAdminLoggedIn = false;
 
-// Renderizza film
-function renderMovies(filtered = movies) {
-  const container = document.getElementById('myMovies');
-  container.innerHTML = '';
-  if (filtered.length === 0) {
-    container.innerHTML = '<p style="color:#888;">Nessun film trovato...</p>';
-    return;
-  }
-  filtered.forEach((movie, i) => {
-    const div = document.createElement('div');
-    div.className = 'movie';
-    div.style.backgroundImage = `url('${movie.image || "https://picsum.photos/220/130?random=" + i}')`;
-    div.onclick = () => playMovie(i);
-    container.appendChild(div);
-  });
+let currentVideoURL = null;
+let currentCoverURL = null;
+
+// Gestione caricamento Copertina
+function handleCoverUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  currentCoverURL = URL.createObjectURL(file);
+  alert("✅ Copertina caricata correttamente!");
 }
 
-// Gestione caricamento video locale
-let currentVideoFile = null;
-let currentVideoURL = null;
-
+// Gestione caricamento Video
 function handleVideoUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
   if (!file.type.startsWith('video/')) {
-    alert("Seleziona solo file video (mp4, webm)");
+    alert("Seleziona solo file video (mp4 o webm)");
     return;
   }
-  currentVideoFile = file;
   currentVideoURL = URL.createObjectURL(file);
-  alert("Video caricato correttamente! Ora inserisci titolo e pubblica.");
+  alert("✅ Video caricato correttamente!");
 }
 
 // Aggiungi film
@@ -137,22 +134,21 @@ function addMovie() {
 
   const title = document.getElementById('title').value.trim();
   const desc = document.getElementById('desc').value.trim();
-  const image = document.getElementById('image').value.trim();
 
   if (!title) {
-    alert("Inserisci almeno il titolo!");
+    alert("Inserisci almeno il titolo del film!");
     return;
   }
   if (!currentVideoURL) {
-    alert("Devi prima selezionare un video dalla galleria!");
+    alert("Devi selezionare un video dalla galleria!");
     return;
   }
 
   movies.push({
-    title,
-    desc,
-    image: image || "",
-    videoURL: currentVideoURL,   // URL locale creato dal file
+    title: title,
+    desc: desc,
+    image: currentCoverURL || "https://picsum.photos/220/130?random=" + Date.now(),
+    videoURL: currentVideoURL,
     isLocal: true
   });
 
@@ -160,28 +156,46 @@ function addMovie() {
   renderMovies();
   closeAdmin();
 
-  // Reset
-  currentVideoFile = null;
+  // Reset campi
   currentVideoURL = null;
+  currentCoverURL = null;
   document.getElementById('title').value = '';
   document.getElementById('desc').value = '';
-  document.getElementById('image').value = '';
   document.getElementById('videoFile').value = '';
+  document.getElementById('coverFile').value = '';
 
-  alert("Film aggiunto con successo! 🎉");
+  alert("🎉 Film pubblicato con successo su Zotflix!");
 }
 
-// Riproduci film
+// Renderizza i film
+function renderMovies(filtered = movies) {
+  const container = document.getElementById('myMovies');
+  container.innerHTML = '';
+  
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:#888; padding:10px;">Nessun film trovato...</p>';
+    return;
+  }
+
+  filtered.forEach((movie, index) => {
+    const div = document.createElement('div');
+    div.className = 'movie';
+    div.style.backgroundImage = `url('${movie.image}')`;
+    div.onclick = () => playMovie(index);
+    container.appendChild(div);
+  });
+}
+
 function playMovie(index) {
   const movie = movies[index];
   const player = document.getElementById('player');
-  player.src = movie.videoURL || movie.videoUrl;
+  player.src = movie.videoURL;
   document.getElementById('videoModal').style.display = 'flex';
 }
 
 function playFeatured() {
   if (movies.length > 0) playMovie(0);
-  else alert("Nessun film caricato.");
+  else alert("Nessun film caricato ancora.");
 }
 
 function closeModal() {
@@ -192,7 +206,6 @@ function closeModal() {
   modal.style.display = 'none';
 }
 
-// Login e Admin
 function showLogin() {
   document.getElementById('loginModal').style.display = 'flex';
 }
@@ -216,23 +229,13 @@ function checkPassword() {
     document.getElementById('loginModal').style.display = 'none';
     document.getElementById('adminNavBtn').style.display = 'block';
     document.getElementById('adminFloatBtn').style.display = 'block';
-    document.getElementById('passwordInput').value = '';
   } else {
     document.getElementById('loginError').style.display = 'block';
     setTimeout(() => document.getElementById('loginError').style.display = 'none', 2500);
   }
 }
 
-function setupSearch() {
-  const input = document.getElementById('searchInput');
-  input.addEventListener('input', () => {
-    const term = input.value.toLowerCase().trim();
-    const filtered = term === '' ? movies : movies.filter(m => m.title.toLowerCase().includes(term));
-    renderMovies(filtered);
-  });
-}
-
-// Login Modal HTML (aggiunto)
+// Aggiungi il modal di login
 document.body.insertAdjacentHTML('beforeend', `
 <div class="modal" id="loginModal">
   <div class="modal-content" style="max-width:380px; text-align:center;">
@@ -245,9 +248,19 @@ document.body.insertAdjacentHTML('beforeend', `
 </div>
 `);
 
-// Inizializza
-renderMovies();
 setupSearch();
+renderMovies();
+</script>
+
+<script>
+function setupSearch() {
+  const input = document.getElementById('searchInput');
+  input.addEventListener('input', () => {
+    const term = input.value.toLowerCase().trim();
+    const filtered = term === '' ? movies : movies.filter(m => m.title.toLowerCase().includes(term));
+    renderMovies(filtered);
+  });
+}
 </script>
 </body>
 </html>

@@ -37,22 +37,7 @@
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; align-items:center; justify-content:center; padding:15px; }
     .modal-content { width:100%; max-width:1100px; background:#000; padding:0; border-radius:10px; overflow:hidden; }
 
-    /* Nascondi i 3 puntini e menu download */
-    video {
-      width: 100%;
-      display: block;
-    }
-    video::-webkit-media-controls-download-button,
-    video::-webkit-media-controls-mute-button,
-    video::-webkit-media-controls-fullscreen-button {
-      display: none !important;
-    }
-    video::-internal-media-controls-download-button {
-      display: none !important;
-    }
-    video::--webkit-media-controls {
-      display: none !important;
-    }
+    video { width:100%; display:block; }
   </style>
 </head>
 <body>
@@ -143,7 +128,7 @@ function handleVideoUpload(e) {
 }
 
 function addMovie() {
-  if (!isAdminLoggedIn) return;
+  if (!isAdminLoggedIn) return alert("Devi essere Admin per caricare film!");
 
   const title = document.getElementById('title').value.trim();
   if (!title) return alert("Inserisci il titolo!");
@@ -178,15 +163,21 @@ function renderMovies(filtered = movies) {
     const div = document.createElement('div');
     div.className = 'movie';
     div.style.backgroundImage = `url('${movie.image}')`;
-    div.innerHTML = `<button class="delete-btn" onclick="deleteMovie(${index}); event.stopImmediatePropagation();">×</button>`;
+    
+    // Mostra il pulsante elimina SOLO se sei loggato come Admin
+    if (isAdminLoggedIn) {
+      div.innerHTML = `<button class="delete-btn" onclick="deleteMovie(${index}); event.stopImmediatePropagation();">×</button>`;
+    }
+    
     div.onclick = () => playMovie(index);
     container.appendChild(div);
   });
 }
 
 function deleteMovie(index) {
+  if (!isAdminLoggedIn) return;
   if (!confirm("Vuoi davvero eliminare questo film?")) return;
-  
+
   if (movies[index].videoURL && movies[index].videoURL.startsWith('blob:')) URL.revokeObjectURL(movies[index].videoURL);
   if (movies[index].image && movies[index].image.startsWith('blob:')) URL.revokeObjectURL(movies[index].image);
 
@@ -204,6 +195,7 @@ function playMovie(index) {
 
 function playFeatured() {
   if (movies.length > 0) playMovie(0);
+  else alert("Nessun film caricato ancora.");
 }
 
 function closeModal() {
@@ -214,13 +206,22 @@ function closeModal() {
   modal.style.display = 'none';
 }
 
-// Login
-function showLogin() { document.getElementById('loginModal').style.display = 'flex'; }
+// ==================== LOGIN ====================
+function showLogin() {
+  document.getElementById('loginModal').style.display = 'flex';
+}
+
 function showAdmin() {
-  if (!isAdminLoggedIn) return showLogin();
+  if (!isAdminLoggedIn) {
+    showLogin();
+    return;
+  }
   document.getElementById('adminModal').style.display = 'flex';
 }
-function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
+
+function closeAdmin() {
+  document.getElementById('adminModal').style.display = 'none';
+}
 
 function checkPassword() {
   const input = document.getElementById('passwordInput').value;
@@ -229,12 +230,14 @@ function checkPassword() {
     document.getElementById('loginModal').style.display = 'none';
     document.getElementById('adminNavBtn').style.display = 'block';
     document.getElementById('adminFloatBtn').style.display = 'block';
+    renderMovies();        // Aggiorna la lista per mostrare i pulsanti elimina
   } else {
     document.getElementById('loginError').style.display = 'block';
     setTimeout(() => document.getElementById('loginError').style.display = 'none', 2500);
   }
 }
 
+// Modal Login
 document.body.insertAdjacentHTML('beforeend', `
 <div class="modal" id="loginModal">
   <div class="modal-content" style="max-width:380px; text-align:center; background:#1f1f1f;">
@@ -255,6 +258,7 @@ function setupSearch() {
   });
 }
 
+// Inizializza
 renderMovies();
 setupSearch();
 </script>

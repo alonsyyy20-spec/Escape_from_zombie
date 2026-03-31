@@ -37,9 +37,22 @@
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; align-items:center; justify-content:center; padding:15px; }
     .modal-content { width:100%; max-width:1100px; background:#000; padding:0; border-radius:10px; overflow:hidden; }
 
-    video { width:100%; display:block; }
-
-    .admin-btn { position:fixed; bottom:20px; right:20px; background:#e50914; color:white; border:none; padding:14px 22px; border-radius:50px; font-size:15px; cursor:pointer; display:none; z-index:200; }
+    /* Nascondi i 3 puntini e menu download */
+    video {
+      width: 100%;
+      display: block;
+    }
+    video::-webkit-media-controls-download-button,
+    video::-webkit-media-controls-mute-button,
+    video::-webkit-media-controls-fullscreen-button {
+      display: none !important;
+    }
+    video::-internal-media-controls-download-button {
+      display: none !important;
+    }
+    video::--webkit-media-controls {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -72,7 +85,7 @@
   <!-- Modal Video -->
   <div class="modal" id="videoModal">
     <div class="modal-content">
-      <video id="player" controls autoplay controlsList="nodownload"></video>
+      <video id="player" controls autoplay controlsList="nodownload nofullscreen" disablePictureInPicture></video>
       <button onclick="closeModal()" style="margin:15px; background:#333; color:white; border:none; padding:10px 20px; float:right;">Chiudi</button>
       <div style="clear:both;"></div>
     </div>
@@ -117,13 +130,11 @@ let isAdminLoggedIn = false;
 let currentVideoURL = null;
 let currentCoverURL = null;
 
-// Caricamento Copertina
 function handleCoverUpload(e) {
   const file = e.target.files[0];
   if (file) currentCoverURL = URL.createObjectURL(file);
 }
 
-// Caricamento Video
 function handleVideoUpload(e) {
   const file = e.target.files[0];
   if (file && file.type.startsWith('video/')) {
@@ -131,7 +142,6 @@ function handleVideoUpload(e) {
   }
 }
 
-// Aggiungi film
 function addMovie() {
   if (!isAdminLoggedIn) return;
 
@@ -150,7 +160,6 @@ function addMovie() {
   renderMovies();
   closeAdmin();
 
-  // Reset
   currentVideoURL = null;
   currentCoverURL = null;
   document.getElementById('title').value = '';
@@ -161,7 +170,6 @@ function addMovie() {
   alert("✅ Film pubblicato con successo!");
 }
 
-// Renderizza film con pulsante elimina
 function renderMovies(filtered = movies) {
   const container = document.getElementById('myMovies');
   container.innerHTML = '';
@@ -170,32 +178,23 @@ function renderMovies(filtered = movies) {
     const div = document.createElement('div');
     div.className = 'movie';
     div.style.backgroundImage = `url('${movie.image}')`;
-    div.innerHTML = `
-      <button class="delete-btn" onclick="deleteMovie(${index}); event.stopImmediatePropagation();">×</button>
-    `;
+    div.innerHTML = `<button class="delete-btn" onclick="deleteMovie(${index}); event.stopImmediatePropagation();">×</button>`;
     div.onclick = () => playMovie(index);
     container.appendChild(div);
   });
 }
 
-// Elimina film
 function deleteMovie(index) {
   if (!confirm("Vuoi davvero eliminare questo film?")) return;
   
-  // Revoca URL per liberare memoria
-  if (movies[index].videoURL && movies[index].videoURL.startsWith('blob:')) {
-    URL.revokeObjectURL(movies[index].videoURL);
-  }
-  if (movies[index].image && movies[index].image.startsWith('blob:')) {
-    URL.revokeObjectURL(movies[index].image);
-  }
+  if (movies[index].videoURL && movies[index].videoURL.startsWith('blob:')) URL.revokeObjectURL(movies[index].videoURL);
+  if (movies[index].image && movies[index].image.startsWith('blob:')) URL.revokeObjectURL(movies[index].image);
 
   movies.splice(index, 1);
   localStorage.setItem('zotflixMovies', JSON.stringify(movies));
   renderMovies();
 }
 
-// Riproduzione video (senza menu download)
 function playMovie(index) {
   const movie = movies[index];
   const player = document.getElementById('player');
@@ -215,19 +214,13 @@ function closeModal() {
   modal.style.display = 'none';
 }
 
-// Login functions
-function showLogin() {
-  document.getElementById('loginModal').style.display = 'flex';
-}
-
+// Login
+function showLogin() { document.getElementById('loginModal').style.display = 'flex'; }
 function showAdmin() {
   if (!isAdminLoggedIn) return showLogin();
   document.getElementById('adminModal').style.display = 'flex';
 }
-
-function closeAdmin() {
-  document.getElementById('adminModal').style.display = 'none';
-}
+function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
 
 function checkPassword() {
   const input = document.getElementById('passwordInput').value;
@@ -242,7 +235,6 @@ function checkPassword() {
   }
 }
 
-// Login Modal
 document.body.insertAdjacentHTML('beforeend', `
 <div class="modal" id="loginModal">
   <div class="modal-content" style="max-width:380px; text-align:center; background:#1f1f1f;">
@@ -263,7 +255,6 @@ function setupSearch() {
   });
 }
 
-// Inizializza
 renderMovies();
 setupSearch();
 </script>

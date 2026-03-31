@@ -29,8 +29,8 @@
 
     .delete-btn {
       position:absolute; top:5px; right:5px; background:rgba(229,9,20,0.9); color:white; 
-      border:none; width:22px; height:22px; border-radius:50%; font-size:14px; cursor:pointer;
-      display:none;
+      border:none; width:24px; height:24px; border-radius:50%; font-size:16px; cursor:pointer;
+      display:none; z-index:10;
     }
     .movie:hover .delete-btn { display:block; }
 
@@ -80,7 +80,6 @@
   <div class="modal" id="adminModal">
     <div class="modal-content">
       <h2>Carica nuovo film</h2>
-      
       <input type="text" id="title" placeholder="Titolo del film" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white;">
       <input type="text" id="desc" placeholder="Breve descrizione" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white;">
 
@@ -115,7 +114,6 @@ let isAdminLoggedIn = false;
 let currentVideoURL = null;
 let currentCoverURL = null;
 
-// Caricamento file
 function handleCoverUpload(e) {
   const file = e.target.files[0];
   if (file) currentCoverURL = URL.createObjectURL(file);
@@ -128,13 +126,12 @@ function handleVideoUpload(e) {
   }
 }
 
-// Aggiungi film (solo admin)
 function addMovie() {
-  if (!isAdminLoggedIn) return alert("Devi fare il login come Admin per caricare film!");
+  if (!isAdminLoggedIn) return alert("Devi essere Admin per caricare film!");
 
   const title = document.getElementById('title').value.trim();
-  if (!title) return alert("Inserisci il titolo del film!");
-  if (!currentVideoURL) return alert("Devi selezionare un video dalla galleria!");
+  if (!title) return alert("Inserisci il titolo!");
+  if (!currentVideoURL) return alert("Devi selezionare un video!");
 
   movies.push({
     title: title,
@@ -147,7 +144,6 @@ function addMovie() {
   renderMovies();
   closeAdmin();
 
-  // Reset
   currentVideoURL = null;
   currentCoverURL = null;
   document.getElementById('title').value = '';
@@ -158,17 +154,16 @@ function addMovie() {
   alert("✅ Film pubblicato con successo!");
 }
 
-// Renderizza film
-function renderMovies(filtered = movies) {
+function renderMovies() {
   const container = document.getElementById('myMovies');
   container.innerHTML = '';
 
-  filtered.forEach((movie, index) => {
+  movies.forEach((movie, index) => {
     const div = document.createElement('div');
     div.className = 'movie';
     div.style.backgroundImage = `url('${movie.image}')`;
     
-    // Mostra pulsante elimina solo se sei admin
+    // Pulsante elimina visibile SOLO se sei Admin
     if (isAdminLoggedIn) {
       div.innerHTML = `<button class="delete-btn" onclick="deleteMovie(${index}); event.stopImmediatePropagation();">×</button>`;
     }
@@ -178,26 +173,27 @@ function renderMovies(filtered = movies) {
   });
 }
 
-// Elimina film (solo admin)
 function deleteMovie(index) {
   if (!isAdminLoggedIn) return;
   if (!confirm("Vuoi davvero eliminare questo film?")) return;
 
-  if (movies[index].videoURL.startsWith('blob:')) URL.revokeObjectURL(movies[index].videoURL);
-  if (movies[index].image.startsWith('blob:')) URL.revokeObjectURL(movies[index].image);
+  if (movies[index].videoURL && movies[index].videoURL.startsWith('blob:')) {
+    URL.revokeObjectURL(movies[index].videoURL);
+  }
+  if (movies[index].image && movies[index].image.startsWith('blob:')) {
+    URL.revokeObjectURL(movies[index].image);
+  }
 
   movies.splice(index, 1);
   localStorage.setItem('zotflixMovies', JSON.stringify(movies));
   renderMovies();
 }
 
-// Riproduci film (funziona per tutti)
 function playMovie(index) {
   const movie = movies[index];
-  if (!movie || !movie.videoURL) return alert("Errore nel caricamento del video");
+  if (!movie || !movie.videoURL) return;
 
-  const player = document.getElementById('player');
-  player.src = movie.videoURL;
+  document.getElementById('player').src = movie.videoURL;
   document.getElementById('videoModal').style.display = 'flex';
 }
 
@@ -233,7 +229,7 @@ function checkPassword() {
     document.getElementById('loginModal').style.display = 'none';
     document.getElementById('adminNavBtn').style.display = 'block';
     document.getElementById('adminFloatBtn').style.display = 'block';
-    renderMovies();   // Aggiorna per mostrare i pulsanti elimina
+    renderMovies(); // aggiorna per mostrare i tasti elimina
   } else {
     document.getElementById('loginError').style.display = 'block';
     setTimeout(() => document.getElementById('loginError').style.display = 'none', 2500);
@@ -257,7 +253,7 @@ function setupSearch() {
   document.getElementById('searchInput').addEventListener('input', () => {
     const term = document.getElementById('searchInput').value.toLowerCase().trim();
     const filtered = term === '' ? movies : movies.filter(m => m.title.toLowerCase().includes(term));
-    renderMovies(filtered);
+    renderMovies(filtered);   // qui era il bug principale
   });
 }
 

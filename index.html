@@ -5,261 +5,303 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zotflix</title>
   <style>
-    body { margin:0; padding:0; background:#141414; color:white; font-family:Arial, sans-serif; overflow-x:hidden; }
-    header { background:linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); padding:15px 20px; display:flex; align-items:center; position:fixed; width:100%; z-index:100; gap:15px; flex-wrap:wrap; }
-    .logo { font-size:32px; font-weight:bold; letter-spacing:-3px; }
-    .logo .z { color:#e50914; animation:pulse 2s infinite; font-size:38px; }
-    @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.12);} 100%{transform:scale(1);} }
-
-    .search-container { position:relative; flex:1; max-width:350px; }
-    .search-icon { background:none; border:none; color:white; font-size:22px; cursor:pointer; position:absolute; left:10px; top:50%; transform:translateY(-50%); }
-    .search-input { background:rgba(0,0,0,0.85); border:1px solid #666; color:white; padding:10px 15px 10px 45px; width:100%; border-radius:4px; font-size:16px; outline:none; }
-
-    .nav { margin-left:auto; display:flex; align-items:center; gap:12px; }
-    .nav button { background:none; border:none; color:white; font-size:15px; cursor:pointer; }
-
-    .hero { height:85vh; min-height:500px; background-size:cover; background-position:center; display:flex; align-items:center; padding:0 20px; position:relative; margin-top:60px; }
-    .row { padding:30px 20px 20px; }
-    .movies { display:flex; gap:12px; overflow-x:auto; padding-bottom:15px; }
-    .movie { 
-      width:180px; height:105px; background-size:cover; background-position:center; 
-      border-radius:8px; cursor:pointer; transition:transform 0.3s; flex-shrink:0; position:relative;
+    :root {
+      --netflix-red: #e50914;
     }
-    .movie:hover { transform:scale(1.08); }
-
-    .delete-btn {
-      position:absolute; top:5px; right:5px; background:rgba(229,9,20,0.9); color:white; 
-      border:none; width:24px; height:24px; border-radius:50%; font-size:16px; cursor:pointer;
-      display:none; z-index:10;
+    body {
+      margin: 0;
+      padding: 0;
+      background: #141414;
+      color: white;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      overflow: hidden;
     }
-    .movie:hover .delete-btn { display:block; }
 
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; align-items:center; justify-content:center; padding:15px; }
-    .modal-content { width:100%; max-width:1100px; background:#000; padding:0; border-radius:10px; overflow:hidden; }
+    /* Schermata di benvenuto con animazione Netflix */
+    #splash-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 1.5s;
+    }
+    .zotflix-logo {
+      font-size: 120px;
+      font-weight: 900;
+      letter-spacing: -10px;
+      color: white;
+      text-shadow: 0 0 40px var(--netflix-red);
+      animation: glow 2s infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 20px var(--netflix-red); }
+      to { text-shadow: 0 0 60px var(--netflix-red), 0 0 80px var(--netflix-red); }
+    }
 
-    video { width:100%; display:block; }
+    /* Schermata Profili */
+    #profile-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #141414;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    .profile-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+      max-width: 900px;
+    }
+    .profile {
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .profile:hover {
+      transform: scale(1.1);
+    }
+    .profile-img {
+      width: 140px;
+      height: 140px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 4px solid transparent;
+      transition: border 0.3s;
+    }
+    .profile:hover .profile-img {
+      border: 4px solid #e50914;
+    }
+    .profile-name {
+      margin-top: 12px;
+      font-size: 18px;
+    }
+    .add-profile {
+      width: 140px;
+      height: 140px;
+      border: 4px dashed #666;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      color: #666;
+      cursor: pointer;
+    }
+
+    /* Home principale */
+    .home-screen {
+      display: none;
+    }
+    header {
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+      padding: 15px 40px;
+      display: flex;
+      align-items: center;
+      position: fixed;
+      width: 100%;
+      z-index: 100;
+    }
+    .logo { font-size: 38px; font-weight: bold; color: var(--netflix-red); }
+
+    .movies { display: flex; gap: 12px; overflow-x: auto; padding: 20px 40px; }
+    .movie {
+      width: 220px;
+      height: 124px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.4s;
+      flex-shrink: 0;
+    }
+    .movie:hover {
+      transform: scale(1.15);
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="logo"><span class="z">Z</span>otflix</div>
-    <div class="search-container">
-      <button class="search-icon" id="searchIcon">🔍</button>
-      <input type="text" id="searchInput" class="search-input" placeholder="Cerca film...">
-    </div>
-    <div class="nav">
-      <button onclick="showLogin()">🔑 Password Admin</button>
-      <button id="adminNavBtn" onclick="showAdmin()" style="display:none;">👤 Admin</button>
-    </div>
-  </header>
-
-  <div class="hero" style="background-image: url('https://picsum.photos/1920/1080?random=1')">
-    <div class="hero-content">
-      <h1>Benvenuto su Zotflix</h1>
-      <p>La tua piattaforma privata</p>
-      <button onclick="playFeatured()" style="background:#e50914; border:none; color:white; padding:12px 28px; font-size:17px; border-radius:5px; cursor:pointer;">▶ Riproduci</button>
-    </div>
+  <!-- Splash Screen con animazione -->
+  <div id="splash-screen">
+    <div class="zotflix-logo">ZOTFLIX</div>
   </div>
 
-  <div class="row">
-    <h2>I miei film</h2>
-    <div class="movies" id="myMovies"></div>
+  <!-- Schermata Profili -->
+  <div id="profile-screen">
+    <h1 style="margin-bottom: 40px; font-size: 48px;">Chi sta guardando?</h1>
+    <div class="profile-container" id="profiles"></div>
+  </div>
+
+  <!-- Schermata Home (dopo scelta profilo) -->
+  <div class="home-screen" id="home-screen">
+    <header>
+      <div class="logo">ZOTFLIX</div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:20px;">
+        <span id="current-profile" style="font-size:18px; cursor:pointer;" onclick="logoutProfile()"></span>
+        <button onclick="showAdmin()" style="background:#e50914; border:none; color:white; padding:8px 18px; border-radius:4px; cursor:pointer;">Admin</button>
+      </div>
+    </header>
+
+    <div style="padding-top:100px;">
+      <div class="row">
+        <h2>I miei film</h2>
+        <div class="movies" id="myMovies"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Video -->
-  <div class="modal" id="videoModal">
+  <div class="modal" id="videoModal" style="display:none;">
     <div class="modal-content">
       <video id="player" controls autoplay controlsList="nodownload nofullscreen" disablePictureInPicture></video>
       <button onclick="closeModal()" style="margin:15px; background:#333; color:white; border:none; padding:10px 20px; float:right;">Chiudi</button>
-      <div style="clear:both;"></div>
     </div>
   </div>
 
-  <!-- Admin Panel -->
-  <div class="modal" id="adminModal">
-    <div class="modal-content">
+  <!-- Admin Modal -->
+  <div class="modal" id="adminModal" style="display:none;">
+    <div class="modal-content" style="background:#1f1f1f; padding:30px; max-width:600px;">
       <h2>Carica nuovo film</h2>
-      <input type="text" id="title" placeholder="Titolo del film" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white;">
-      <input type="text" id="desc" placeholder="Breve descrizione" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white;">
-
-      <button onclick="document.getElementById('coverFile').click()" style="background:#333; color:white; border:none; padding:12px 20px; margin:10px 0; border-radius:5px; cursor:pointer; width:100%;">
-        🖼️ Seleziona Copertina dalla Galleria
-      </button>
-      <input type="file" id="coverFile" accept="image/*" style="display:none;" onchange="handleCoverUpload(event)">
-
-      <button onclick="document.getElementById('videoFile').click()" style="background:#e50914; color:white; border:none; padding:12px 20px; margin:10px 0; border-radius:5px; cursor:pointer; width:100%;">
-        📁 Seleziona Video dalla Galleria
-      </button>
-      <input type="file" id="videoFile" accept="video/mp4,video/webm" style="display:none;" onchange="handleVideoUpload(event)">
-
-      <button onclick="addMovie()" style="background:#e50914; color:white; border:none; padding:15px 30px; margin-top:20px; border-radius:5px; cursor:pointer; width:100%;">
-        Pubblica Film
-      </button>
-      <button onclick="closeAdmin()" style="margin-top:10px; background:#555; color:white; border:none; padding:15px 30px; border-radius:5px; cursor:pointer; width:100%;">
-        Chiudi
-      </button>
+      <!-- Qui puoi mettere il tuo pannello admin precedente -->
+      <p style="color:#888;">(Pannello Admin - da completare)</p>
+      <button onclick="closeAdmin()" style="margin-top:20px; background:#e50914; color:white; border:none; padding:12px 30px;">Chiudi</button>
     </div>
   </div>
-
-  <button class="admin-btn" id="adminFloatBtn" onclick="showAdmin()">+ Carica Film (Solo io)</button>
 
 <script>
-// ==================== CONFIG ====================
-const ADMIN_PASSWORD = "admin";
+// ==================== DATI ====================
+let profiles = JSON.parse(localStorage.getItem('zotflixProfiles')) || [
+  { id: 1, name: "Matteo", image: "https://picsum.photos/id/64/300/300" },
+  { id: 2, name: "Sara", image: "https://picsum.photos/id/65/300/300" }
+];
 
+let currentProfile = null;
 let movies = JSON.parse(localStorage.getItem('zotflixMovies')) || [];
 let isAdminLoggedIn = false;
+const ADMIN_PASSWORD = "admin";
 
-let currentVideoURL = null;
-let currentCoverURL = null;
+// Splash Screen
+setTimeout(() => {
+  document.getElementById('splash-screen').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('splash-screen').style.display = 'none';
+    showProfileScreen();
+  }, 1500);
+}, 2200);
 
-function handleCoverUpload(e) {
-  const file = e.target.files[0];
-  if (file) currentCoverURL = URL.createObjectURL(file);
+// Schermata Profili
+function showProfileScreen() {
+  const container = document.getElementById('profiles');
+  container.innerHTML = '';
+
+  profiles.forEach(profile => {
+    const div = document.createElement('div');
+    div.className = 'profile';
+    div.innerHTML = `
+      <img src="\( {profile.image}" class="profile-img" alt=" \){profile.name}">
+      <div class="profile-name">${profile.name}</div>
+    `;
+    div.onclick = () => selectProfile(profile);
+    container.appendChild(div);
+  });
+
+  // Pulsante Aggiungi Profilo
+  const addDiv = document.createElement('div');
+  addDiv.className = 'profile';
+  addDiv.innerHTML = `<div class="add-profile">+</div><div class="profile-name">Aggiungi</div>`;
+  addDiv.onclick = addNewProfile;
+  container.appendChild(addDiv);
+
+  document.getElementById('profile-screen').style.display = 'flex';
 }
 
-function handleVideoUpload(e) {
-  const file = e.target.files[0];
-  if (file && file.type.startsWith('video/')) {
-    currentVideoURL = URL.createObjectURL(file);
+function selectProfile(profile) {
+  currentProfile = profile;
+  document.getElementById('profile-screen').style.display = 'none';
+  document.getElementById('home-screen').style.display = 'block';
+  document.getElementById('current-profile').textContent = profile.name;
+  renderMovies();
+}
+
+function addNewProfile() {
+  if (profiles.length >= 5) {
+    alert("Hai raggiunto il massimo di 5 profili!");
+    return;
+  }
+  const name = prompt("Nome del nuovo profilo:");
+  if (!name) return;
+
+  const imageUrl = prompt("Inserisci URL immagine (o lascia vuoto per default):", "https://picsum.photos/id/" + (Math.floor(Math.random()*100)+1) + "/300/300");
+  
+  const newProfile = {
+    id: Date.now(),
+    name: name,
+    image: imageUrl || "https://picsum.photos/300/300"
+  };
+  
+  profiles.push(newProfile);
+  localStorage.setItem('zotflixProfiles', JSON.stringify(profiles));
+  showProfileScreen();
+}
+
+function logoutProfile() {
+  if (confirm("Vuoi cambiare profilo?")) {
+    document.getElementById('home-screen').style.display = 'none';
+    currentProfile = null;
+    showProfileScreen();
   }
 }
 
-function addMovie() {
-  if (!isAdminLoggedIn) return alert("Devi essere Admin per caricare film!");
-
-  const title = document.getElementById('title').value.trim();
-  if (!title) return alert("Inserisci il titolo!");
-  if (!currentVideoURL) return alert("Devi selezionare un video!");
-
-  movies.push({
-    title: title,
-    desc: document.getElementById('desc').value.trim(),
-    image: currentCoverURL || "https://picsum.photos/220/130?random=" + Date.now(),
-    videoURL: currentVideoURL
-  });
-
-  localStorage.setItem('zotflixMovies', JSON.stringify(movies));
-  renderMovies();
-  closeAdmin();
-
-  currentVideoURL = null;
-  currentCoverURL = null;
-  document.getElementById('title').value = '';
-  document.getElementById('desc').value = '';
-  document.getElementById('videoFile').value = '';
-  document.getElementById('coverFile').value = '';
-
-  alert("✅ Film pubblicato con successo!");
-}
-
+// Render Movies
 function renderMovies() {
   const container = document.getElementById('myMovies');
   container.innerHTML = '';
-
   movies.forEach((movie, index) => {
     const div = document.createElement('div');
     div.className = 'movie';
     div.style.backgroundImage = `url('${movie.image}')`;
-    
-    // Pulsante elimina visibile SOLO se sei Admin
-    if (isAdminLoggedIn) {
-      div.innerHTML = `<button class="delete-btn" onclick="deleteMovie(${index}); event.stopImmediatePropagation();">×</button>`;
-    }
-
     div.onclick = () => playMovie(index);
     container.appendChild(div);
   });
 }
 
-function deleteMovie(index) {
-  if (!isAdminLoggedIn) return;
-  if (!confirm("Vuoi davvero eliminare questo film?")) return;
-
-  if (movies[index].videoURL && movies[index].videoURL.startsWith('blob:')) {
-    URL.revokeObjectURL(movies[index].videoURL);
-  }
-  if (movies[index].image && movies[index].image.startsWith('blob:')) {
-    URL.revokeObjectURL(movies[index].image);
-  }
-
-  movies.splice(index, 1);
-  localStorage.setItem('zotflixMovies', JSON.stringify(movies));
-  renderMovies();
-}
-
 function playMovie(index) {
   const movie = movies[index];
-  if (!movie || !movie.videoURL) return;
-
   document.getElementById('player').src = movie.videoURL;
   document.getElementById('videoModal').style.display = 'flex';
 }
 
-function playFeatured() {
-  if (movies.length > 0) playMovie(0);
-  else alert("Nessun film caricato ancora.");
-}
-
 function closeModal() {
-  const modal = document.getElementById('videoModal');
   const video = document.getElementById('player');
   video.pause();
   video.src = '';
-  modal.style.display = 'none';
+  document.getElementById('videoModal').style.display = 'none';
 }
 
-// Login
-function showLogin() { document.getElementById('loginModal').style.display = 'flex'; }
-
+// Admin functions (semplificate per ora)
 function showAdmin() {
-  if (!isAdminLoggedIn) return showLogin();
-  document.getElementById('adminModal').style.display = 'flex';
+  if (!currentProfile) return;
+  const pass = prompt("Inserisci password Admin:");
+  if (pass === ADMIN_PASSWORD) {
+    document.getElementById('adminModal').style.display = 'flex';
+  } else {
+    alert("Password errata!");
+  }
 }
 
 function closeAdmin() {
   document.getElementById('adminModal').style.display = 'none';
 }
 
-function checkPassword() {
-  const input = document.getElementById('passwordInput').value;
-  if (input === ADMIN_PASSWORD) {
-    isAdminLoggedIn = true;
-    document.getElementById('loginModal').style.display = 'none';
-    document.getElementById('adminNavBtn').style.display = 'block';
-    document.getElementById('adminFloatBtn').style.display = 'block';
-    renderMovies(); // aggiorna per mostrare i tasti elimina
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    setTimeout(() => document.getElementById('loginError').style.display = 'none', 2500);
-  }
-}
-
-// Modal Login
-document.body.insertAdjacentHTML('beforeend', `
-<div class="modal" id="loginModal">
-  <div class="modal-content" style="max-width:380px; text-align:center; background:#1f1f1f;">
-    <h2>🔑 Accesso Admin</h2>
-    <p>Inserisci la password</p>
-    <input type="password" id="passwordInput" placeholder="Password" style="width:100%; padding:12px; margin:15px 0; background:#333; border:none; color:white;">
-    <button onclick="checkPassword()" style="background:#e50914; color:white; border:none; padding:12px 30px; width:100%; border-radius:5px; cursor:pointer;">Accedi</button>
-    <p id="loginError" style="color:#e50914; margin-top:10px; display:none;">Password errata!</p>
-  </div>
-</div>
-`);
-
-function setupSearch() {
-  document.getElementById('searchInput').addEventListener('input', () => {
-    const term = document.getElementById('searchInput').value.toLowerCase().trim();
-    const filtered = term === '' ? movies : movies.filter(m => m.title.toLowerCase().includes(term));
-    renderMovies(filtered);   // qui era il bug principale
-  });
-}
-
 // Inizializza
-renderMovies();
-setupSearch();
 </script>
 </body>
 </html>

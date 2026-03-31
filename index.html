@@ -11,31 +11,32 @@
       background: #141414;
       color: white;
       font-family: 'Helvetica Neue', Arial, sans-serif;
+      overflow-x: hidden;
     }
 
     /* Splash */
-    #splash-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #000; display: flex; align-items: center; justify-content: center;
+    #splash {
+      position: fixed; inset: 0; background: #000;
+      display: flex; align-items: center; justify-content: center;
       z-index: 9999; transition: opacity 2s;
     }
-    .zotflix-logo {
-      font-size: 90px; font-weight: 900; letter-spacing: -6px;
+    .logo-big {
+      font-size: 92px; font-weight: 900; letter-spacing: -8px;
       color: white; text-shadow: 0 0 60px var(--red);
-      animation: glow 2s infinite alternate;
+      animation: glow 2.2s infinite alternate;
     }
-    @keyframes glow { from { text-shadow: 0 0 30px var(--red); } to { text-shadow: 0 0 90px var(--red); } }
+    @keyframes glow { from { text-shadow: 0 0 30px var(--red); } to { text-shadow: 0 0 100px var(--red); } }
 
     /* Profili */
     #profile-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #141414; display: none; flex-direction: column;
-      align-items: center; justify-content: center; padding: 20px;
+      position: fixed; inset: 0; background: #141414;
+      display: none; flex-direction: column; align-items: center;
+      justify-content: center; padding: 20px;
     }
     h1 { font-size: 42px; margin-bottom: 50px; }
 
     .profile-container {
-      display: flex; flex-wrap: wrap; gap: 30px; justify-content: center;
+      display: flex; flex-wrap: wrap; gap: 28px; justify-content: center;
     }
     .profile {
       text-align: center; cursor: pointer; position: relative;
@@ -49,7 +50,7 @@
     .profile-name { margin-top: 12px; font-size: 18px; }
 
     .edit-btn {
-      position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8);
+      position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8);
       color: white; border: none; width: 32px; height: 32px; border-radius: 50%;
       font-size: 18px; cursor: pointer; display: none;
     }
@@ -72,19 +73,19 @@
 
     .right-header { margin-left: auto; display: flex; align-items: center; gap: 15px; }
 
-    .movies { display: flex; gap: 12px; overflow-x: auto; padding: 90px 20px 30px; }
+    .movies { display: flex; gap: 12px; overflow-x: auto; padding: 100px 20px 30px; }
     .movie {
-      width: 190px; height: 107px; background-size: cover; background-position: center;
+      width: 195px; height: 110px; background-size: cover; background-position: center;
       border-radius: 8px; cursor: pointer; transition: transform 0.4s; flex-shrink: 0;
     }
-    .movie:hover { transform: scale(1.12); }
+    .movie:hover { transform: scale(1.13); }
   </style>
 </head>
 <body>
 
   <!-- Splash -->
-  <div id="splash-screen">
-    <div class="zotflix-logo">ZOTFLIX</div>
+  <div id="splash">
+    <div class="logo-big">ZOTFLIX</div>
   </div>
 
   <!-- Profili -->
@@ -103,61 +104,47 @@
       </div>
     </header>
 
-    <div style="padding-top:100px; padding-left:20px;">
+    <div style="padding-top:110px; padding-left:20px;">
       <h2>I miei film</h2>
       <div class="movies" id="myMovies"></div>
     </div>
   </div>
 
   <!-- Modal Video -->
-  <div id="videoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; align-items:center; justify-content:center; padding:10px;">
-    <div style="width:100%; max-width:1100px;">
+  <div id="videoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:2000; align-items:center; justify-content:center; padding:10px;">
+    <div style="width:95%; max-width:1100px;">
       <video id="player" controls autoplay controlsList="nodownload" style="width:100%; border-radius:8px;"></video>
       <button onclick="closeModal()" style="margin-top:15px; background:#333; color:white; border:none; padding:12px 25px; border-radius:4px;">Chiudi</button>
     </div>
   </div>
 
-  <!-- Admin Panel (Carica Film) -->
-  <div id="adminModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; align-items:center; justify-content:center; padding:15px;">
-    <div style="background:#1f1f1f; padding:25px; border-radius:12px; width:100%; max-width:600px;">
+  <!-- Admin Panel -->
+  <div id="adminModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:3000; align-items:center; justify-content:center; padding:15px;">
+    <div style="background:#1f1f1f; padding:25px; border-radius:12px; width:100%; max-width:620px;">
       <h2>Carica nuovo film</h2>
-      <input type="text" id="title" placeholder="Titolo del film" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white; border-radius:4px;">
-      <input type="text" id="desc" placeholder="Descrizione" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white; border-radius:4px;">
+      <input type="text" id="title" placeholder="Titolo del film" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white; border-radius:6px;">
+      <input type="text" id="desc" placeholder="Descrizione" style="width:100%; padding:12px; margin:10px 0; background:#333; border:none; color:white; border-radius:6px;">
 
-      <button onclick="document.getElementById('coverFile').click()" style="width:100%; padding:12px; margin:10px 0; background:#333; color:white; border:none; border-radius:4px;">
+      <button onclick="document.getElementById('coverFile').click()" style="width:100%; padding:14px; margin:10px 0; background:#333; color:white; border:none; border-radius:6px;">
         🖼️ Seleziona Copertina dalla Galleria
       </button>
       <input type="file" id="coverFile" accept="image/*" style="display:none;" onchange="handleCoverUpload(event)">
 
-      <button onclick="document.getElementById('videoFile').click()" style="width:100%; padding:12px; margin:10px 0; background:var(--red); color:white; border:none; border-radius:4px;">
+      <button onclick="document.getElementById('videoFile').click()" style="width:100%; padding:14px; margin:10px 0; background:var(--red); color:white; border:none; border-radius:6px;">
         📹 Seleziona Video dalla Galleria
       </button>
       <input type="file" id="videoFile" accept="video/mp4,video/webm" style="display:none;" onchange="handleVideoUpload(event)">
 
-      <div style="margin-top:20px;">
-        <button onclick="addMovie()" style="background:var(--red); color:white; border:none; padding:14px 30px; border-radius:4px; width:48%;">Pubblica Film</button>
-        <button onclick="closeAdmin()" style="background:#555; color:white; border:none; padding:14px 30px; border-radius:4px; width:48%;">Chiudi</button>
+      <div style="margin-top:25px; display:flex; gap:15px;">
+        <button onclick="addMovie()" style="flex:1; background:var(--red); color:white; border:none; padding:14px; border-radius:6px;">Pubblica Film</button>
+        <button onclick="closeAdmin()" style="flex:1; background:#555; color:white; border:none; padding:14px; border-radius:6px;">Annulla</button>
       </div>
     </div>
   </div>
 
 <script>
-// ==================== 25 IMMAGINI PROFILI ====================
-const profileImages = [
-  "https://picsum.photos/id/64/300/300", "https://picsum.photos/id/65/300/300",
-  "https://picsum.photos/id/91/300/300", "https://picsum.photos/id/1005/300/300",
-  "https://picsum.photos/id/1011/300/300", "https://picsum.photos/id/1027/300/300",
-  "https://picsum.photos/id/106/300/300", "https://picsum.photos/id/133/300/300",
-  "https://picsum.photos/id/201/300/300", "https://picsum.photos/id/238/300/300",
-  "https://picsum.photos/id/251/300/300", "https://picsum.photos/id/274/300/300",
-  "https://picsum.photos/id/669/300/300", "https://picsum.photos/id/870/300/300",
-  "https://picsum.photos/id/1009/300/300", "https://picsum.photos/id/1012/300/300",
-  "https://picsum.photos/id/102/300/300", "https://picsum.photos/id/160/300/300",
-  "https://picsum.photos/id/201/300/300", "https://picsum.photos/id/669/300/300",
-  "https://picsum.photos/id/1005/300/300", "https://picsum.photos/id/133/300/300",
-  "https://picsum.photos/id/238/300/300", "https://picsum.photos/id/274/300/300",
-  "https://picsum.photos/id/870/300/300"
-];
+// ==================== 50 IMMAGINI PROFILI ====================
+const profileImages = Array.from({length: 50}, (_, i) => `https://picsum.photos/id/${60 + i}/300/300`);
 
 let profiles = JSON.parse(localStorage.getItem('zotflixProfiles')) || [
   { id: 1, name: "Matteo", image: profileImages[0] },
@@ -166,40 +153,41 @@ let profiles = JSON.parse(localStorage.getItem('zotflixProfiles')) || [
 
 let currentProfile = null;
 let movies = JSON.parse(localStorage.getItem('zotflixMovies')) || [];
-let currentVideoURL = null;
-let currentCoverURL = null;
+let currentVideoFile = null;
+let currentCoverFile = null;
 const ADMIN_PASSWORD = "admin";
 
-// Splash
+// ===================== SPLASH =====================
 setTimeout(() => {
-  document.getElementById('splash-screen').style.opacity = '0';
+  document.getElementById('splash').style.opacity = '0';
   setTimeout(() => {
-    document.getElementById('splash-screen').style.display = 'none';
+    document.getElementById('splash').style.display = 'none';
     showProfileScreen();
   }, 1800);
 }, 2200);
 
+// ===================== PROFILI =====================
 function showProfileScreen() {
   const container = document.getElementById('profiles');
   container.innerHTML = '';
 
-  profiles.forEach(profile => {
+  profiles.forEach(p => {
     const div = document.createElement('div');
     div.className = 'profile';
     div.innerHTML = `
-      <img src="${profile.image}" class="profile-img">
-      <button class="edit-btn" onclick="editProfile(${profile.id}); event.stopImmediatePropagation();">✏️</button>
-      <div class="profile-name">${profile.name}</div>
+      <img src="${p.image}" class="profile-img">
+      <button class="edit-btn" onclick="editProfile(${p.id}); event.stopImmediatePropagation();">✏️</button>
+      <div class="profile-name">${p.name}</div>
     `;
-    div.onclick = () => selectProfile(profile);
+    div.onclick = () => selectProfile(p);
     container.appendChild(div);
   });
 
-  const addDiv = document.createElement('div');
-  addDiv.className = 'profile';
-  addDiv.innerHTML = `<div class="add-profile">+</div><div class="profile-name">Aggiungi</div>`;
-  addDiv.onclick = addNewProfile;
-  container.appendChild(addDiv);
+  const add = document.createElement('div');
+  add.className = 'profile';
+  add.innerHTML = `<div class="add-profile">+</div><div class="profile-name">Aggiungi</div>`;
+  add.onclick = addNewProfile;
+  container.appendChild(add);
 
   document.getElementById('profile-screen').style.display = 'flex';
 }
@@ -216,10 +204,10 @@ function editProfile(id) {
   const profile = profiles.find(p => p.id === id);
   if (!profile) return;
 
-  const newName = prompt("Nuovo nome:", profile.name);
+  const newName = prompt("Nuovo nome del profilo:", profile.name);
   if (newName) profile.name = newName;
 
-  const newImg = prompt("URL nuova immagine:", profile.image);
+  const newImg = prompt("URL nuova immagine (lascia vuoto per sceglierne una casuale):", profile.image);
   if (newImg) profile.image = newImg;
 
   localStorage.setItem('zotflixProfiles', JSON.stringify(profiles));
@@ -238,14 +226,14 @@ function addNewProfile() {
 }
 
 function logoutProfile() {
-  if (confirm("Cambiare profilo?")) {
+  if (confirm("Vuoi cambiare profilo?")) {
     document.getElementById('home-screen').style.display = 'none';
     currentProfile = null;
     showProfileScreen();
   }
 }
 
-// ==================== ADMIN - CARICA FILM ====================
+// ===================== ADMIN - CARICA FILM =====================
 function showAdmin() {
   const pass = prompt("Inserisci password Admin:");
   if (pass === ADMIN_PASSWORD) {
@@ -257,44 +245,53 @@ function showAdmin() {
 
 function closeAdmin() {
   document.getElementById('adminModal').style.display = 'none';
-  currentVideoURL = null;
-  currentCoverURL = null;
+  currentVideoFile = null;
+  currentCoverFile = null;
 }
 
 function handleCoverUpload(e) {
-  const file = e.target.files[0];
-  if (file) currentCoverURL = URL.createObjectURL(file);
+  currentCoverFile = e.target.files[0];
 }
 
 function handleVideoUpload(e) {
-  const file = e.target.files[0];
-  if (file && file.type.startsWith('video/')) {
-    currentVideoURL = URL.createObjectURL(file);
-  }
+  currentVideoFile = e.target.files[0];
 }
 
 function addMovie() {
   const title = document.getElementById('title').value.trim();
   if (!title) return alert("Inserisci il titolo!");
-  if (!currentVideoURL) return alert("Devi selezionare un video!");
+  if (!currentVideoFile) return alert("Devi selezionare un video!");
 
-  movies.push({
-    title: title,
-    desc: document.getElementById('desc').value.trim(),
-    image: currentCoverURL || "https://picsum.photos/220/130?random=" + Date.now(),
-    videoURL: currentVideoURL
-  });
+  const readerVideo = new FileReader();
+  readerVideo.onload = function(e) {
+    const videoBase64 = e.target.result;
 
-  localStorage.setItem('zotflixMovies', JSON.stringify(movies));
-  renderMovies();
-  closeAdmin();
-  alert("✅ Film caricato con successo!");
+    const readerCover = new FileReader();
+    readerCover.onload = function(ev) {
+      const coverBase64 = ev.target.result || "https://picsum.photos/220/130?random=" + Date.now();
+
+      movies.push({
+        title: title,
+        desc: document.getElementById('desc').value.trim(),
+        image: coverBase64,
+        videoURL: videoBase64
+      });
+
+      localStorage.setItem('zotflixMovies', JSON.stringify(movies));
+      renderMovies();
+      closeAdmin();
+      alert("✅ Film salvato correttamente! Rimarrà anche dopo aver chiuso il browser.");
+    };
+    readerCover.readAsDataURL(currentCoverFile || new Blob());
+  };
+  readerVideo.readAsDataURL(currentVideoFile);
 }
 
-// Render Film
+// ===================== RENDER FILM =====================
 function renderMovies() {
   const container = document.getElementById('myMovies');
   container.innerHTML = '';
+
   movies.forEach((movie, i) => {
     const div = document.createElement('div');
     div.className = 'movie';
@@ -305,7 +302,8 @@ function renderMovies() {
 }
 
 function playMovie(index) {
-  document.getElementById('player').src = movies[index].videoURL;
+  const movie = movies[index];
+  document.getElementById('player').src = movie.videoURL;
   document.getElementById('videoModal').style.display = 'flex';
 }
 

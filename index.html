@@ -18,17 +18,28 @@
     }
     #ui {
       position: absolute;
-      top: 10px;
-      left: 10px;
+      top: 15px;
+      left: 15px;
       color: #ffff00;
       font-size: 26px;
       font-weight: bold;
       z-index: 100;
       text-shadow: 0 0 10px #ffff00;
     }
+    #title {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #e50914;
+      font-size: 26px;
+      font-weight: bold;
+      z-index: 100;
+    }
+
     .controls {
       position: absolute;
-      bottom: 15px;
+      bottom: 20px;
       width: 100%;
       display: flex;
       justify-content: space-between;
@@ -38,15 +49,15 @@
     }
     .dpad {
       display: grid;
-      grid-template-columns: 85px 85px 85px;
-      grid-template-rows: 85px 85px 85px;
+      grid-template-columns: 90px 90px 90px;
+      grid-template-rows: 90px 90px 90px;
       gap: 12px;
     }
     .dpad button {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.18);
       border: 4px solid #ffff00;
       color: white;
-      font-size: 36px;
+      font-size: 38px;
       border-radius: 16px;
       pointer-events: all;
     }
@@ -54,11 +65,11 @@
       background: rgba(255, 100, 0, 0.7);
       border: 5px solid #ffff00;
       color: white;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: bold;
       border-radius: 50%;
-      width: 85px;
-      height: 85px;
+      width: 90px;
+      height: 90px;
       pointer-events: all;
       display: flex;
       align-items: center;
@@ -67,20 +78,45 @@
       line-height: 1.1;
     }
     #shoot {
+      width: 120px;
+      height: 120px;
       background: rgba(255, 0, 0, 0.7);
-      border: 5px solid #ffff00;
+      border: 6px solid #ffff00;
       color: white;
       font-size: 22px;
       font-weight: bold;
       border-radius: 50%;
-      width: 110px;
-      height: 110px;
       pointer-events: all;
+    }
+
+    #gameOver {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.95);
+      padding: 40px 50px;
+      border: 5px solid #e50914;
+      border-radius: 20px;
+      text-align: center;
+      display: none;
+      z-index: 300;
+    }
+    #restartBtn {
+      margin-top: 20px;
+      padding: 15px 40px;
+      font-size: 22px;
+      background: #e50914;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
+  <div id="title">ESCAPE FROM ZOMBIE</div>
   <div id="ui">Tempo: <span id="time">0</span>s</div>
   
   <canvas id="game" width="800" height="600"></canvas>
@@ -99,19 +135,26 @@
       <div></div>
     </div>
 
-    <div style="display:flex; flex-direction:column; gap:15px; align-items:center;">
-      <button id="shoot" class="special-btn">SPARA</button>
-      
-      <button id="bazooka" class="special-btn" style="font-size:13px;">BAZOOKA</button>
-      <button id="tornado" class="special-btn" style="font-size:13px;">TORNADO</button>
-      <button id="fire" class="special-btn" style="font-size:13px;">FUOCO</button>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <button id="shoot">SPARA</button>
+      <button id="bazooka" class="special-btn">BAZOOKA</button>
+      <button id="tornado" class="special-btn">TORNADO</button>
+      <button id="fire" class="special-btn">FUOCO</button>
     </div>
+  </div>
+
+  <!-- Game Over -->
+  <div id="gameOver">
+    <h1>GAME OVER</h1>
+    <p style="font-size:24px;">Sei sopravvissuto <span id="finalTime">0</span> secondi</p>
+    <button id="restartBtn" onclick="restartGame()">RESTART</button>
   </div>
 
 <script>
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const timeElement = document.getElementById('time');
+const finalTimeElement = document.getElementById('finalTime');
 
 let timeSurvived = 0;
 let gameRunning = true;
@@ -123,14 +166,14 @@ const player = {
   y: 480,
   width: 28,
   height: 38,
-  speed: 7
+  speed: 7.5
 };
 
 let bullets = [];
 let enemies = [];
 let keys = {};
 
-// ===================== CONTROLLI TOUCH =====================
+// ===================== CONTROLLI =====================
 function setupControls() {
   // Freccette
   document.getElementById('up').addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; });
@@ -147,21 +190,20 @@ function setupControls() {
 
   // Spara normale
   let shooting = false;
-  const shootBtn = document.getElementById('shoot');
-  shootBtn.addEventListener('touchstart', (e) => { e.preventDefault(); shooting = true; });
-  shootBtn.addEventListener('touchend', () => shooting = false);
+  document.getElementById('shoot').addEventListener('touchstart', (e) => { e.preventDefault(); shooting = true; });
+  document.getElementById('shoot').addEventListener('touchend', () => shooting = false);
 
   setInterval(() => {
     if (shooting && gameRunning) shoot();
-  }, 80);
+  }, 75);
 
-  // Mosse speciali (una volta ogni 8 secondi)
+  // Mosse speciali
   let lastSpecial = 0;
-  const specialCooldown = 8000;
+  const cooldown = 8000;
 
   document.getElementById('bazooka').addEventListener('touchstart', (e) => {
     e.preventDefault();
-    if (Date.now() - lastSpecial > specialCooldown) {
+    if (Date.now() - lastSpecial > cooldown) {
       bazookaAttack();
       lastSpecial = Date.now();
     }
@@ -169,7 +211,7 @@ function setupControls() {
 
   document.getElementById('tornado').addEventListener('touchstart', (e) => {
     e.preventDefault();
-    if (Date.now() - lastSpecial > specialCooldown) {
+    if (Date.now() - lastSpecial > cooldown) {
       tornadoAttack();
       lastSpecial = Date.now();
     }
@@ -177,72 +219,66 @@ function setupControls() {
 
   document.getElementById('fire').addEventListener('touchstart', (e) => {
     e.preventDefault();
-    if (Date.now() - lastSpecial > specialCooldown) {
+    if (Date.now() - lastSpecial > cooldown) {
       fireAttack();
       lastSpecial = Date.now();
     }
   });
 }
 
-// ===================== GIOCO =====================
+// ===================== ATTACCHI SPECIALI =====================
 function shoot() {
-  bullets.push({
-    x: player.x,
-    y: player.y - 30,
-    width: 6,
-    height: 18,
-    speed: 16
-  });
+  bullets.push({ x: player.x, y: player.y - 30, width: 6, height: 18, speed: 15 });
 }
 
 function bazookaAttack() {
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 10; i++) {
     setTimeout(() => {
       bullets.push({
-        x: player.x + (Math.random()*60 - 30),
+        x: player.x + (Math.random() * 80 - 40),
         y: player.y - 40,
-        width: 12,
-        height: 25,
-        speed: 10,
+        width: 14,
+        height: 28,
+        speed: 11,
         color: '#ff8800'
       });
-    }, i * 60);
+    }, i * 50);
   }
 }
 
 function tornadoAttack() {
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 18; i++) {
     bullets.push({
-      x: player.x + (Math.random()*200 - 100),
-      y: player.y - 50 - i*15,
-      width: 8,
-      height: 8,
-      speed: 8,
+      x: player.x + (Math.random() * 180 - 90),
+      y: player.y - 60 - i * 12,
+      width: 9,
+      height: 9,
+      speed: 9,
       color: '#00ffff'
     });
   }
 }
 
 function fireAttack() {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 25; i++) {
     bullets.push({
       x: player.x,
-      y: player.y - 30 - i*10,
-      width: 5,
-      height: 20,
-      speed: 12,
+      y: player.y - 30 - i * 12,
+      width: 6,
+      height: 22,
+      speed: 13,
       color: '#ff4400'
     });
   }
 }
 
 function spawnEnemy() {
-  if (Math.random() < 0.045) {
+  if (Math.random() < 0.04) {
     enemies.push({
       x: Math.random() * (canvas.width - 60) + 30,
       y: -40,
       radius: 15,
-      speed: 2.8 + Math.random() * 2.2
+      speed: 3.2 + Math.random() * 2.8
     });
   }
 }
@@ -259,7 +295,7 @@ function gameLoop() {
   player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
   player.y = Math.max(30, Math.min(canvas.height - 50, player.y));
 
-  // Aggiorna tempo
+  // Tempo sopravvivenza
   if (Date.now() - lastTime > 1000) {
     timeSurvived++;
     timeElement.textContent = timeSurvived;
@@ -287,7 +323,7 @@ function gameLoop() {
       return;
     }
 
-    if (e.y > canvas.height + 50) enemies.splice(i, 1);
+    if (e.y > canvas.height + 60) enemies.splice(i, 1);
   }
 
   // Collisione proiettili - nemici
@@ -297,23 +333,22 @@ function gameLoop() {
       const e = enemies[j];
       const dx = b.x - e.x;
       const dy = b.y - e.y;
-      if (Math.sqrt(dx*dx + dy*dy) < e.radius + 8) {
+      if (Math.sqrt(dx*dx + dy*dy) < e.radius + 9) {
         bullets.splice(i, 1);
         enemies.splice(j, 1);
-        score += 20;
         break;
       }
     }
   }
 
   // Disegno
-  ctx.fillStyle = '#0a3d0a'; // prato scuro
+  ctx.fillStyle = '#0a3d0a';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Erba che scorre (effetto movimento)
+  // Prato che scorre (effetto camminata)
   ctx.fillStyle = '#1a5a1a';
-  for (let i = 0; i < 8; i++) {
-    ctx.fillRect(0, (Date.now()/10 % 80) + i*80 - 40, canvas.width, 8);
+  for (let i = 0; i < 12; i++) {
+    ctx.fillRect(0, (Date.now() / 9 % 85) + i*75 - 50, canvas.width, 12);
   }
 
   // Disegna cursore GIALLO
@@ -346,7 +381,12 @@ function gameLoop() {
 
 function gameOver() {
   gameRunning = false;
-  alert(`GAME OVER!\n\nSei sopravvissuto ${timeSurvived} secondi!\n\nPunteggio: ${timeSurvived * 10}\n\nRicarica la pagina per giocare di nuovo.`);
+  finalTimeElement.textContent = timeSurvived;
+  document.getElementById('gameOver').style.display = 'block';
+}
+
+function restartGame() {
+  location.reload();
 }
 
 // Avvio

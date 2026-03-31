@@ -10,65 +10,76 @@
       background: #000;
       overflow: hidden;
       touch-action: none;
+      height: 100vh;
+      width: 100vw;
     }
     canvas {
       display: block;
-      width: 100vw;
-      height: 100vh;
+      margin: 0 auto;
+      max-width: 100%;
+      max-height: 100vh;
     }
+
     #ui {
       position: absolute;
-      top: 12px;
-      left: 12px;
+      top: 15px;
+      left: 15px;
       color: #ffff00;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: bold;
       z-index: 100;
-      text-shadow: 0 0 12px #ffff00;
+      text-shadow: 0 0 10px #ffff00;
     }
     #title {
       position: absolute;
-      top: 12px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
       color: #e50914;
-      font-size: 26px;
+      font-size: 24px;
       font-weight: bold;
       z-index: 100;
     }
 
-    /* Controlli grandi */
     .controls {
       position: absolute;
       bottom: 25px;
-      width: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 95%;
+      max-width: 420px;
       display: flex;
       justify-content: space-between;
-      padding: 0 25px;
       z-index: 200;
     }
     .dpad {
       display: grid;
-      grid-template-columns: 95px 95px 95px;
-      grid-template-rows: 95px 95px 95px;
-      gap: 12px;
+      grid-template-columns: 80px 80px 80px;
+      grid-template-rows: 80px 80px 80px;
+      gap: 10px;
     }
     .dpad button {
       background: rgba(255,255,255,0.2);
       border: 4px solid #ffff00;
       color: white;
-      font-size: 40px;
-      border-radius: 18px;
+      font-size: 36px;
+      border-radius: 16px;
+    }
+    .action-area {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
     }
     .action-btn {
       background: rgba(255,60,60,0.75);
-      border: 6px solid #ffff00;
+      border: 5px solid #ffff00;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       border-radius: 50%;
-      width: 105px;
-      height: 105px;
+      width: 95px;
+      height: 95px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -97,7 +108,7 @@
       <div></div>
     </div>
 
-    <div style="display:flex; flex-direction:column; gap:15px;">
+    <div class="action-area">
       <button id="shoot" class="action-btn">SPARA</button>
       <button id="bazooka" class="action-btn">BAZOOKA</button>
       <button id="tornado" class="action-btn">TORNADO</button>
@@ -109,8 +120,12 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 let timeSurvived = 0;
 let gameRunning = true;
@@ -118,17 +133,17 @@ let lastTime = Date.now();
 
 const player = {
   x: canvas.width / 2,
-  y: canvas.height - 100,
-  width: 32,
-  height: 42,
-  speed: 8
+  y: canvas.height - 120,
+  width: 28,
+  height: 38,
+  speed: 7.5
 };
 
 let bullets = [];
 let enemies = [];
 let keys = {};
 
-// ===================== CONTROLLI =====================
+// Controlli Touch
 document.getElementById('up').addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; });
 document.getElementById('up').addEventListener('touchend', () => keys['ArrowUp'] = false);
 
@@ -148,50 +163,37 @@ document.getElementById('shoot').addEventListener('touchend', () => shooting = f
 
 setInterval(() => {
   if (shooting && gameRunning) shoot();
-}, 70);
+}, 75);
 
-// Mosse speciali
+// Mosse speciali (cooldown 30 secondi)
 let lastSpecial = 0;
 const specialCooldown = 30000;
 
-document.getElementById('bazooka').addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  if (Date.now() - lastSpecial > specialCooldown) {
-    bazookaAttack();
-    lastSpecial = Date.now();
-  }
+['bazooka', 'tornado', 'fire'].forEach(type => {
+  document.getElementById(type).addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (Date.now() - lastSpecial > specialCooldown) {
+      if (type === 'bazooka') bazookaAttack();
+      if (type === 'tornado') tornadoAttack();
+      if (type === 'fire') fireAttack();
+      lastSpecial = Date.now();
+    }
+  });
 });
 
-document.getElementById('tornado').addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  if (Date.now() - lastSpecial > specialCooldown) {
-    tornadoAttack();
-    lastSpecial = Date.now();
-  }
-});
-
-document.getElementById('fire').addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  if (Date.now() - lastSpecial > specialCooldown) {
-    fireAttack();
-    lastSpecial = Date.now();
-  }
-});
-
-// ===================== FUNZIONI =====================
 function shoot() {
   bullets.push({ x: player.x, y: player.y - 35, width: 6, height: 18, speed: 16 });
 }
 
 function bazookaAttack() {
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 10; i++) {
     setTimeout(() => {
       bullets.push({
-        x: player.x + (Math.random()*120 - 60),
+        x: player.x + (Math.random()*100 - 50),
         y: player.y - 60,
-        width: 16,
-        height: 32,
-        speed: 12,
+        width: 14,
+        height: 30,
+        speed: 11,
         color: '#ff8800'
       });
     }, i*60);
@@ -199,12 +201,12 @@ function bazookaAttack() {
 }
 
 function tornadoAttack() {
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 20; i++) {
     bullets.push({
-      x: player.x + (Math.random()*200 - 100),
+      x: player.x + (Math.random()*180 - 90),
       y: player.y - 80 - i*12,
-      width: 10,
-      height: 10,
+      width: 9,
+      height: 9,
       speed: 9,
       color: '#00ffff'
     });
@@ -212,13 +214,13 @@ function tornadoAttack() {
 }
 
 function fireAttack() {
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 25; i++) {
     bullets.push({
       x: player.x,
-      y: player.y - 40 - i*15,
-      width: 7,
-      height: 24,
-      speed: 14,
+      y: player.y - 40 - i*12,
+      width: 6,
+      height: 22,
+      speed: 13,
       color: '#ff4400'
     });
   }
@@ -229,7 +231,7 @@ function spawnEnemy() {
     enemies.push({
       x: Math.random() * (canvas.width - 60) + 30,
       y: -40,
-      radius: 16,
+      radius: 15,
       speed: 3.5 + Math.random() * 2.5
     });
   }
@@ -238,7 +240,6 @@ function spawnEnemy() {
 function gameLoop() {
   if (!gameRunning) return;
 
-  // Movimento
   if (keys['ArrowLeft']) player.x -= player.speed;
   if (keys['ArrowRight']) player.x += player.speed;
   if (keys['ArrowUp']) player.y -= player.speed;
@@ -247,14 +248,12 @@ function gameLoop() {
   player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
   player.y = Math.max(50, Math.min(canvas.height - 70, player.y));
 
-  // Tempo
   if (Date.now() - lastTime > 1000) {
     timeSurvived++;
     timeElement.textContent = timeSurvived;
     lastTime = Date.now();
   }
 
-  // Proiettili
   bullets = bullets.filter(b => {
     b.y -= b.speed || 15;
     return b.y > -50;
@@ -262,14 +261,13 @@ function gameLoop() {
 
   spawnEnemy();
 
-  // Nemici
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
     e.y += e.speed;
 
     const dx = player.x - e.x;
     const dy = player.y - e.y;
-    if (Math.sqrt(dx*dx + dy*dy) < 35 + e.radius) {
+    if (Math.sqrt(dx*dx + dy*dy) < 32 + e.radius) {
       gameOver();
       return;
     }
@@ -277,7 +275,6 @@ function gameLoop() {
     if (e.y > canvas.height + 60) enemies.splice(i, 1);
   }
 
-  // Collisione proiettili - nemici
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = enemies.length - 1; j >= 0; j--) {
       const b = bullets[i];
@@ -298,18 +295,18 @@ function gameLoop() {
 
   // Prato che scorre
   ctx.fillStyle = '#1a5a1a';
-  for (let i = 0; i < 15; i++) {
-    ctx.fillRect(0, (Date.now() / 10 % 90) + i*65 - 50, canvas.width, 14);
+  for (let i = 0; i < 12; i++) {
+    ctx.fillRect(0, (Date.now() / 9 % 85) + i*75 - 50, canvas.width, 14);
   }
 
   // Cursore giallo
   ctx.fillStyle = '#ffff00';
   ctx.beginPath();
   ctx.moveTo(player.x, player.y - 28);
-  ctx.lineTo(player.x - 16, player.y + 22);
-  ctx.lineTo(player.x - 8, player.y + 16);
-  ctx.lineTo(player.x + 8, player.y + 16);
-  ctx.lineTo(player.x + 16, player.y + 22);
+  ctx.lineTo(player.x - 15, player.y + 20);
+  ctx.lineTo(player.x - 7, player.y + 14);
+  ctx.lineTo(player.x + 7, player.y + 14);
+  ctx.lineTo(player.x + 15, player.y + 20);
   ctx.closePath();
   ctx.fill();
 
@@ -331,11 +328,9 @@ function gameLoop() {
 function gameOver() {
   gameRunning = false;
   alert(`GAME OVER!\n\nSei sopravvissuto ${timeSurvived} secondi!`);
-  setTimeout(() => location.reload(), 1500);
 }
 
 // Avvio
-setupControls();
 gameLoop();
 </script>
 </body>

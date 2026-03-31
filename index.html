@@ -5,63 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zotflix</title>
   <style>
-    :root { --red: #e50914; }
     body {
       margin: 0; padding: 0;
       background: #141414;
       color: white;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-family: Arial, sans-serif;
     }
 
-    /* Splash */
     #splash {
       position: fixed; inset: 0; background: #000;
       display: flex; align-items: center; justify-content: center;
       z-index: 9999;
     }
     .logo-big {
-      font-size: 88px; font-weight: 900; letter-spacing: -6px;
-      color: white; text-shadow: 0 0 60px var(--red);
+      font-size: 80px; font-weight: bold; color: #e50914;
     }
 
-    /* Profili */
-    #profile-screen {
-      position: fixed; inset: 0; background: #141414;
-      display: none; flex-direction: column; align-items: center;
-      justify-content: center; padding: 20px;
-    }
-    h1 { font-size: 40px; margin-bottom: 50px; }
+    #profile-screen, .home-screen { display: none; }
 
     .profile-container {
-      display: flex; flex-wrap: wrap; gap: 25px; justify-content: center;
+      display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; padding: 40px 20px;
     }
     .profile {
-      text-align: center; cursor: pointer; position: relative;
+      text-align: center; cursor: pointer;
     }
     .profile-img {
       width: 130px; height: 130px; border-radius: 12px; object-fit: cover;
-      border: 4px solid transparent;
     }
-    .profile:hover .profile-img { border-color: var(--red); }
-    .profile-name { margin-top: 12px; font-size: 18px; }
+    .profile-name { margin-top: 10px; font-size: 18px; }
 
-    /* Home */
-    .home-screen { display: none; }
     header {
-      background: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent);
-      padding: 15px 20px; display: flex; align-items: center; position: fixed;
-      width: 100%; z-index: 100;
+      background: #000; padding: 15px; text-align: center; font-size: 28px; color: #e50914;
+      position: fixed; width: 100%; z-index: 100;
     }
-    .logo { font-size: 34px; font-weight: bold; color: var(--red); }
 
-    .right-header { margin-left: auto; display: flex; align-items: center; gap: 15px; }
-
-    .movies { display: flex; gap: 12px; overflow-x: auto; padding: 100px 20px 30px; }
+    .movies {
+      display: flex; gap: 12px; overflow-x: auto; padding: 80px 20px 20px;
+    }
     .movie {
-      width: 195px; height: 110px; background-size: cover; background-position: center;
-      border-radius: 8px; cursor: pointer; transition: transform 0.4s; flex-shrink: 0;
+      width: 180px; height: 100px; background-size: cover; background-position: center;
+      border-radius: 8px; cursor: pointer;
     }
-    .movie:hover { transform: scale(1.12); }
   </style>
 </head>
 <body>
@@ -73,97 +57,63 @@
 
   <!-- Profili -->
   <div id="profile-screen">
-    <h1>Chi sta guardando?</h1>
+    <h1 style="text-align:center; margin:40px 0 30px;">Chi sta guardando?</h1>
     <div class="profile-container" id="profiles"></div>
   </div>
 
   <!-- Home -->
   <div class="home-screen" id="home-screen">
-    <header>
-      <div class="logo">ZOTFLIX</div>
-      <div class="right-header">
-        <span id="current-profile-name" onclick="logoutProfile()" style="cursor:pointer; font-size:18px;"></span>
-        <button onclick="showAdmin()" style="background:var(--red); border:none; color:white; padding:8px 20px; border-radius:4px; cursor:pointer;">Admin</button>
-      </div>
-    </header>
-
-    <div style="padding-top:100px; padding-left:20px;">
+    <header>ZOTFLIX</header>
+    <div style="padding-top:80px; padding-left:20px;">
       <h2>I miei film</h2>
       <div class="movies" id="myMovies"></div>
     </div>
+    <button onclick="showAdmin()" style="position:fixed; bottom:20px; right:20px; background:#e50914; color:white; border:none; padding:15px 25px; border-radius:50px; font-size:16px; box-shadow:0 4px 15px rgba(229,9,20,0.5);">Admin</button>
   </div>
 
   <!-- Admin Panel -->
-  <div id="adminModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:3000; align-items:center; justify-content:center; padding:15px;">
-    <div style="background:#1f1f1f; padding:25px; border-radius:12px; width:100%; max-width:600px;">
+  <div id="adminModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center; padding:15px;">
+    <div style="background:#1f1f1f; padding:25px; border-radius:12px; width:100%; max-width:580px;">
       <h2>Carica nuovo film</h2>
-      
       <input type="text" id="title" placeholder="Titolo del film" style="width:100%; padding:14px; margin:10px 0; background:#333; border:none; color:white; border-radius:6px;">
       <input type="text" id="desc" placeholder="Descrizione" style="width:100%; padding:14px; margin:10px 0; background:#333; border:none; color:white; border-radius:6px;">
 
       <button onclick="document.getElementById('coverFile').click()" style="width:100%; padding:14px; margin:10px 0; background:#333; color:white; border:none; border-radius:6px;">
-        🖼️ Seleziona Copertina dalla Galleria
+        🖼️ Copertina
       </button>
-      <input type="file" id="coverFile" accept="image/*" style="display:none;" onchange="handleCoverUpload(event)">
+      <input type="file" id="coverFile" accept="image/*" style="display:none;">
 
-      <button onclick="document.getElementById('videoFile').click()" style="width:100%; padding:14px; margin:10px 0; background:var(--red); color:white; border:none; border-radius:6px;">
-        📹 Seleziona Video dalla Galleria
+      <button onclick="document.getElementById('videoFile').click()" style="width:100%; padding:14px; margin:10px 0; background:#e50914; color:white; border:none; border-radius:6px;">
+        📹 Video
       </button>
-      <input type="file" id="videoFile" accept="video/mp4,video/webm" style="display:none;" onchange="handleVideoUpload(event)">
+      <input type="file" id="videoFile" accept="video/mp4" style="display:none;">
 
       <div style="margin-top:25px;">
-        <button onclick="addMovie()" style="background:var(--red); color:white; border:none; padding:16px; width:100%; border-radius:6px; font-size:17px;">Pubblica Film</button>
+        <button onclick="addMovie()" style="background:#e50914; color:white; border:none; padding:16px; width:100%; border-radius:8px; font-size:17px;">Pubblica Film</button>
       </div>
-      <button onclick="closeAdmin()" style="margin-top:10px; background:#555; color:white; border:none; padding:14px; width:100%; border-radius:6px;">Annulla</button>
+      <button onclick="closeAdmin()" style="margin-top:10px; background:#555; color:white; border:none; padding:14px; width:100%; border-radius:8px;">Annulla</button>
     </div>
   </div>
 
 <script>
-// ==================== CONFIG ====================
+// Password
 const ADMIN_PASSWORD = "admin";
 
-let profiles = JSON.parse(localStorage.getItem('zotflixProfiles')) || [
-  { id: 1, name: "Matteo", image: "https://picsum.photos/id/64/300/300" },
-  { id: 2, name: "Sara", image: "https://picsum.photos/id/65/300/300" }
-];
-
 let movies = JSON.parse(localStorage.getItem('zotflixMovies')) || [];
-let currentProfile = null;
-let currentVideoFile = null;
-let currentCoverFile = null;
 
 // Splash
 setTimeout(() => {
   document.getElementById('splash').style.opacity = '0';
   setTimeout(() => {
     document.getElementById('splash').style.display = 'none';
-    showProfileScreen();
-  }, 1800);
-}, 2200);
+    document.getElementById('profile-screen').style.display = 'flex';
+  }, 1500);
+}, 2000);
 
 function showProfileScreen() {
-  const container = document.getElementById('profiles');
-  container.innerHTML = '';
-
-  profiles.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'profile';
-    div.innerHTML = `
-      <img src="${p.image}" class="profile-img">
-      <div class="profile-name">${p.name}</div>
-    `;
-    div.onclick = () => selectProfile(p);
-    container.appendChild(div);
-  });
-
-  document.getElementById('profile-screen').style.display = 'flex';
-}
-
-function selectProfile(profile) {
-  currentProfile = profile;
+  // Per semplicità, saltiamo la scelta profilo per ora
   document.getElementById('profile-screen').style.display = 'none';
   document.getElementById('home-screen').style.display = 'block';
-  document.getElementById('current-profile-name').textContent = profile.name;
   renderMovies();
 }
 
@@ -174,7 +124,7 @@ function renderMovies() {
   movies.forEach((movie, i) => {
     const div = document.createElement('div');
     div.className = 'movie';
-    div.style.backgroundImage = `url('${movie.image}')`;
+    div.style.backgroundImage = `url('${movie.image || "https://picsum.photos/220/130"}')`;
     div.onclick = () => playMovie(i);
     container.appendChild(div);
   });
@@ -183,14 +133,19 @@ function renderMovies() {
 function playMovie(i) {
   const movie = movies[i];
   if (movie && movie.videoURL) {
-    document.getElementById('player').src = movie.videoURL;
-    document.getElementById('videoModal').style.display = 'flex';
+    const v = document.createElement('video');
+    v.src = movie.videoURL;
+    v.controls = true;
+    v.style.width = '100%';
+    v.style.maxHeight = '80vh';
+    document.body.appendChild(v);
+    v.play();
   }
 }
 
 // Admin
 function showAdmin() {
-  const pass = prompt("Inserisci la password Admin:");
+  const pass = prompt("Inserisci password Admin:");
   if (pass === ADMIN_PASSWORD) {
     document.getElementById('adminModal').style.display = 'flex';
   } else {
@@ -202,27 +157,33 @@ function closeAdmin() {
   document.getElementById('adminModal').style.display = 'none';
 }
 
-// Caricamento file
-function handleCoverUpload(e) {
-  currentCoverFile = e.target.files[0];
-}
-
-function handleVideoUpload(e) {
-  currentVideoFile = e.target.files[0];
-}
-
 function addMovie() {
   const title = document.getElementById('title').value.trim();
-  if (!title) return alert("Inserisci il titolo del film!");
+  if (!title) {
+    alert("Inserisci il titolo!");
+    return;
+  }
 
-  if (!currentVideoFile) return alert("Devi selezionare un video dalla galleria!");
+  const videoInput = document.getElementById('videoFile');
+  if (!videoInput.files[0]) {
+    alert("Seleziona un video!");
+    return;
+  }
+
+  const file = videoInput.files[0];
+
+  if (file.size > 80 * 1024 * 1024) {
+    alert("Il video è troppo grande! Prova con un video più piccolo (meno di 80MB).");
+    return;
+  }
+
+  alert("Caricamento in corso...\n\nAttendi qualche secondo, non chiudere la pagina.");
 
   const reader = new FileReader();
   reader.onload = function(e) {
     movies.push({
       title: title,
-      desc: document.getElementById('desc').value.trim() || "",
-      image: currentCoverFile ? URL.createObjectURL(currentCoverFile) : "https://picsum.photos/220/130?random=" + Date.now(),
+      image: "https://picsum.photos/220/130?random=" + Date.now(),
       videoURL: e.target.result
     });
 
@@ -231,19 +192,8 @@ function addMovie() {
     closeAdmin();
     alert("✅ Film pubblicato con successo!");
   };
-  reader.readAsDataURL(currentVideoFile);
+  reader.readAsDataURL(file);
 }
-
-function logoutProfile() {
-  if (confirm("Cambiare profilo?")) {
-    document.getElementById('home-screen').style.display = 'none';
-    currentProfile = null;
-    showProfileScreen();
-  }
-}
-
-// Inizializza
 </script>
 </body>
 </html>
-

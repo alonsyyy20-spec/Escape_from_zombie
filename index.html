@@ -10,16 +10,12 @@
       background: #000;
       overflow: hidden;
       touch-action: none;
-      height: 100vh;
-      width: 100vw;
     }
     canvas {
       display: block;
-      margin: 0 auto;
-      max-width: 100%;
-      max-height: 100vh;
+      width: 100vw;
+      height: 100vh;
     }
-
     #ui {
       position: absolute;
       top: 15px;
@@ -28,7 +24,6 @@
       font-size: 26px;
       font-weight: bold;
       z-index: 100;
-      text-shadow: 0 0 10px #ffff00;
     }
     #title {
       position: absolute;
@@ -44,32 +39,24 @@
     .controls {
       position: absolute;
       bottom: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 95%;
-      max-width: 420px;
+      width: 100%;
       display: flex;
       justify-content: space-between;
+      padding: 0 25px;
       z-index: 200;
     }
     .dpad {
       display: grid;
-      grid-template-columns: 80px 80px 80px;
-      grid-template-rows: 80px 80px 80px;
-      gap: 10px;
+      grid-template-columns: 90px 90px 90px;
+      grid-template-rows: 90px 90px 90px;
+      gap: 12px;
     }
     .dpad button {
       background: rgba(255,255,255,0.2);
       border: 4px solid #ffff00;
       color: white;
-      font-size: 36px;
+      font-size: 38px;
       border-radius: 16px;
-    }
-    .action-area {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      align-items: center;
     }
     .action-btn {
       background: rgba(255,60,60,0.75);
@@ -83,7 +70,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
+    }
+    .cooldown-text {
+      font-size: 12px;
+      color: #ffff00;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -94,7 +85,6 @@
   
   <canvas id="game"></canvas>
 
-  <!-- Controlli -->
   <div class="controls">
     <div class="dpad">
       <div></div>
@@ -108,11 +98,11 @@
       <div></div>
     </div>
 
-    <div class="action-area">
+    <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
       <button id="shoot" class="action-btn">SPARA</button>
-      <button id="bazooka" class="action-btn">BAZOOKA</button>
-      <button id="tornado" class="action-btn">TORNADO</button>
-      <button id="fire" class="action-btn">FUOCO</button>
+      <button id="bazooka" class="action-btn">BAZOOKA<br><span id="cd-bazooka" class="cooldown-text"></span></button>
+      <button id="tornado" class="action-btn">TORNADO<br><span id="cd-tornado" class="cooldown-text"></span></button>
+      <button id="fire" class="action-btn">FUOCO<br><span id="cd-fire" class="cooldown-text"></span></button>
     </div>
   </div>
 
@@ -120,12 +110,12 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-function resizeCanvas() {
+function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+window.addEventListener('resize', resize);
+resize();
 
 let timeSurvived = 0;
 let gameRunning = true;
@@ -134,8 +124,8 @@ let lastTime = Date.now();
 const player = {
   x: canvas.width / 2,
   y: canvas.height - 120,
-  width: 28,
-  height: 38,
+  width: 30,
+  height: 40,
   speed: 7.5
 };
 
@@ -143,7 +133,10 @@ let bullets = [];
 let enemies = [];
 let keys = {};
 
-// Controlli Touch
+// Cooldown mosse speciali (30 secondi)
+let cooldowns = { bazooka: 0, tornado: 0, fire: 0 };
+
+// ===================== CONTROLLI =====================
 document.getElementById('up').addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; });
 document.getElementById('up').addEventListener('touchend', () => keys['ArrowUp'] = false);
 
@@ -156,37 +149,53 @@ document.getElementById('left').addEventListener('touchend', () => keys['ArrowLe
 document.getElementById('right').addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowRight'] = true; });
 document.getElementById('right').addEventListener('touchend', () => keys['ArrowRight'] = false);
 
-// Spara
+// Spara normale
 let shooting = false;
 document.getElementById('shoot').addEventListener('touchstart', (e) => { e.preventDefault(); shooting = true; });
 document.getElementById('shoot').addEventListener('touchend', () => shooting = false);
 
 setInterval(() => {
   if (shooting && gameRunning) shoot();
-}, 75);
+}, 70);
 
-// Mosse speciali (cooldown 30 secondi)
-let lastSpecial = 0;
-const specialCooldown = 30000;
+// Mosse speciali
+const specialBtns = {
+  bazooka: document.getElementById('bazooka'),
+  tornado: document.getElementById('tornado'),
+  fire: document.getElementById('fire')
+};
 
-['bazooka', 'tornado', 'fire'].forEach(type => {
-  document.getElementById(type).addEventListener('touchstart', (e) => {
+Object.keys(specialBtns).forEach(key => {
+  specialBtns[key].addEventListener('touchstart', (e) => {
     e.preventDefault();
-    if (Date.now() - lastSpecial > specialCooldown) {
-      if (type === 'bazooka') bazookaAttack();
-      if (type === 'tornado') tornadoAttack();
-      if (type === 'fire') fireAttack();
-      lastSpecial = Date.now();
+    if (cooldowns[key] === 0) {
+      useSpecial(key);
     }
   });
 });
 
+function useSpecial(type) {
+  if (type === 'bazooka') bazookaAttack();
+  if (type === 'tornado') tornadoAttack();
+  if (type === 'fire') fireAttack();
+
+  cooldowns[type] = 30;
+  updateCooldownDisplay();
+}
+
+function updateCooldownDisplay() {
+  document.getElementById('cd-bazooka').textContent = cooldowns.bazooka > 0 ? cooldowns.bazooka + "s" : "";
+  document.getElementById('cd-tornado').textContent = cooldowns.tornado > 0 ? cooldowns.tornado + "s" : "";
+  document.getElementById('cd-fire').textContent = cooldowns.fire > 0 ? cooldowns.fire + "s" : "";
+}
+
+// ===================== ATTACCHI =====================
 function shoot() {
   bullets.push({ x: player.x, y: player.y - 35, width: 6, height: 18, speed: 16 });
 }
 
 function bazookaAttack() {
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 8; i++) {
     setTimeout(() => {
       bullets.push({
         x: player.x + (Math.random()*100 - 50),
@@ -196,15 +205,15 @@ function bazookaAttack() {
         speed: 11,
         color: '#ff8800'
       });
-    }, i*60);
+    }, i*70);
   }
 }
 
 function tornadoAttack() {
   for (let i = 0; i < 20; i++) {
     bullets.push({
-      x: player.x + (Math.random()*180 - 90),
-      y: player.y - 80 - i*12,
+      x: player.x + (Math.random()*160 - 80),
+      y: player.y - 80 - i*10,
       width: 9,
       height: 9,
       speed: 9,
@@ -227,7 +236,7 @@ function fireAttack() {
 }
 
 function spawnEnemy() {
-  if (Math.random() < 0.045) {
+  if (Math.random() < 0.04) {
     enemies.push({
       x: Math.random() * (canvas.width - 60) + 30,
       y: -40,
@@ -240,6 +249,7 @@ function spawnEnemy() {
 function gameLoop() {
   if (!gameRunning) return;
 
+  // Movimento
   if (keys['ArrowLeft']) player.x -= player.speed;
   if (keys['ArrowRight']) player.x += player.speed;
   if (keys['ArrowUp']) player.y -= player.speed;
@@ -248,12 +258,20 @@ function gameLoop() {
   player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
   player.y = Math.max(50, Math.min(canvas.height - 70, player.y));
 
+  // Tempo
   if (Date.now() - lastTime > 1000) {
     timeSurvived++;
     timeElement.textContent = timeSurvived;
     lastTime = Date.now();
   }
 
+  // Cooldowns
+  Object.keys(cooldowns).forEach(key => {
+    if (cooldowns[key] > 0) cooldowns[key]--;
+  });
+  updateCooldownDisplay();
+
+  // Proiettili
   bullets = bullets.filter(b => {
     b.y -= b.speed || 15;
     return b.y > -50;
@@ -261,6 +279,7 @@ function gameLoop() {
 
   spawnEnemy();
 
+  // Nemici
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
     e.y += e.speed;
@@ -275,6 +294,7 @@ function gameLoop() {
     if (e.y > canvas.height + 60) enemies.splice(i, 1);
   }
 
+  // Collisione proiettili - nemici
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = enemies.length - 1; j >= 0; j--) {
       const b = bullets[i];
